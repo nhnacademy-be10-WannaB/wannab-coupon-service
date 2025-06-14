@@ -1,10 +1,13 @@
 package shop.wannab.couponservice.domain;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -14,9 +17,13 @@ import shop.wannab.couponservice.domain.enums.PolicyRule;
 @Entity
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 public class CouponPolicy {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    //동시성 제어 고민해볼것
     private long couponPolicyId;
 
     @NotNull
@@ -29,7 +36,7 @@ public class CouponPolicy {
     private DiscountType discountType;
 
     @NotNull
-    private float discountValue;
+    private int discountValue;
 
     @NotNull
     private int maxDiscount;
@@ -37,15 +44,11 @@ public class CouponPolicy {
     @NotNull
     private int minPurchase;
 
-    @NotNull
+    //프론트 엔드에 코드 추가 예정
     private int validDays;
 
-    @NotNull
     private LocalDate fixedStartDate;
 
-    @NotNull
     private LocalDate fixedEndDate;
 
-    @NotNull
-    private boolean state;
 }
