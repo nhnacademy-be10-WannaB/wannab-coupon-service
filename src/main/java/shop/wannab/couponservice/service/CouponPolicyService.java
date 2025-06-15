@@ -107,14 +107,14 @@ public class CouponPolicyService {
         }
 
         return policies.stream()
-                .map(CouponPolicyResponseDto::convertToDto)
+                .map(CouponPolicyResponseDto::from)
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public CouponPolicyDetailResponseDto getCouponPolicyById(long policyId) {
         CouponPolicy couponPolicy = couponPolicyRepository.findById(policyId).orElse(null);
-        return CouponPolicyDetailResponseDto.convertToDto(
+        return CouponPolicyDetailResponseDto.from(
                 Objects.requireNonNull(couponPolicy));
     }
 
