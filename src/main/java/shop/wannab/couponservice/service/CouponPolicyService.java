@@ -1,6 +1,5 @@
 package shop.wannab.couponservice.service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
@@ -96,41 +95,8 @@ public class CouponPolicyService {
         List<CouponPolicy> policies = couponPolicyRepository.findAll();
 
         return policies.stream()
-                .map(this::convertToDto)
+                .map(CouponPolicyResponseDto::convertToDto)
                 .collect(Collectors.toList());
     }
 
-    private CouponPolicyResponseDto convertToDto(CouponPolicy policy) {
-        CouponPolicyResponseDto dto = new CouponPolicyResponseDto();
-
-        dto.setId(policy.getCouponPolicyId());
-        dto.setName(policy.getCouponPolicyName());
-        dto.setDiscountType(policy.getDiscountType() == DiscountType.FIXED ? "정액" : "정률");
-        dto.setMinPurchase(String.format("%,d원 이상", policy.getMinPurchase()));
-
-        // 할인 정보 포맷팅
-        if (policy.getDiscountType() == DiscountType.FIXED) {
-            dto.setDiscount(String.format("%,d원", policy.getDiscountValue()));
-        } else {
-            dto.setDiscount(String.format("%d%%", policy.getDiscountValue()));
-        }
-
-        if (policy.getValidDays() > 0) {
-            dto.setPeriod(String.format("발급 후 %d일", policy.getValidDays()));
-        } else {
-            dto.setPeriod(String.format("%s ~ %s", policy.getFixedStartDate(), policy.getFixedEndDate()));
-        }
-
-        // 자동 발급 조건 포맷팅
-        List<String> autoIssueTypes = new ArrayList<>();
-        if (policy.getPolicyRule() == PolicyRule.WELCOME) {
-            autoIssueTypes.add("회원가입");
-        }
-        if (policy.getPolicyRule() == PolicyRule.BIRTHDAY) {
-            autoIssueTypes.add("생일");
-        }
-        dto.setAutoIssue(String.join(", ", autoIssueTypes));
-
-        return dto;
-    }
 }
