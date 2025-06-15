@@ -19,7 +19,7 @@ public class CouponPolicyResponseDto {
     private String period;
     private String autoIssue;
 
-    public static CouponPolicyResponseDto convertToDto(CouponPolicy policy) {
+    public static CouponPolicyResponseDto from(CouponPolicy policy) {
         CouponPolicyResponseDto dto = new CouponPolicyResponseDto();
 
         dto.id = policy.getCouponPolicyId();

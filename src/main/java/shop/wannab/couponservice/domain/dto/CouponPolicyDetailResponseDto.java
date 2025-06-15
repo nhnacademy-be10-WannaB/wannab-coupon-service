@@ -19,7 +19,7 @@ public class CouponPolicyDetailResponseDto {
     private String startDate;
     private String endDate;
 
-    public static CouponPolicyDetailResponseDto convertToDto(CouponPolicy couponPolicy) {
+    public static CouponPolicyDetailResponseDto from(CouponPolicy couponPolicy) {
         CouponPolicyDetailResponseDto dto = new CouponPolicyDetailResponseDto();
         dto.couponPolicyId = couponPolicy.getCouponPolicyId();
         dto.couponPolicyName = couponPolicy.getCouponPolicyName();
