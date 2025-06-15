@@ -4,8 +4,8 @@ package shop.wannab.couponservice.controller;
 import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,12 +20,13 @@ import shop.wannab.couponservice.domain.dto.CreateCouponPolicyDto;
 import shop.wannab.couponservice.domain.dto.UpdateCouponPolicyDto;
 import shop.wannab.couponservice.service.CouponPolicyService;
 
+
 @RestController
 @RequestMapping("/api/admin/coupon_policies")
 public class CouponPolicyController {
+
     private final CouponPolicyService couponPolicyService;
 
-    @Autowired
     public CouponPolicyController(CouponPolicyService couponPolicyService) {
         this.couponPolicyService = couponPolicyService;
     }
@@ -57,5 +58,10 @@ public class CouponPolicyController {
         return ResponseEntity.ok().build();
     }
 
+    @DeleteMapping("/{policyId}")
+    public ResponseEntity<Void> deleteCouponPolicy(@PathVariable Long policyId) {
+        couponPolicyService.deleteCouponPolicyById(policyId);
+        return ResponseEntity.ok().build();
+    }
 
 }

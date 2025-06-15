@@ -1,5 +1,6 @@
 package shop.wannab.couponservice.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -14,6 +15,7 @@ import shop.wannab.couponservice.domain.dto.CreateCouponPolicyDto;
 import shop.wannab.couponservice.domain.dto.UpdateCouponPolicyDto;
 import shop.wannab.couponservice.domain.enums.DiscountType;
 import shop.wannab.couponservice.domain.enums.PolicyRule;
+import shop.wannab.couponservice.domain.enums.PolicyStatus;
 import shop.wannab.couponservice.repository.CouponPolicyRepository;
 import shop.wannab.couponservice.repository.CouponRepository;
 import shop.wannab.couponservice.repository.PolicyTargetBookRepository;
@@ -48,7 +50,8 @@ public class CouponPolicyService {
                 .minPurchase(request.getMinPurchase())
                 .validDays(request.getValidForDays())
                 .fixedStartDate(request.getStartDate())
-                .fixedEndDate(request.getEndDate()).build();
+                .fixedEndDate(request.getEndDate())
+                .policyStatus(PolicyStatus.ACTIVE).build();
 
         if(request.getCouponType().equals("NORMAL")){
             if(request.isBirthday()){
@@ -95,7 +98,15 @@ public class CouponPolicyService {
     //쿠폰 정책 목록
     @Transactional
     public List<CouponPolicyResponseDto> getCouponPolicies() {
-        List<CouponPolicy> policies = couponPolicyRepository.findAll();
+        List<CouponPolicy> tempPolicies = couponPolicyRepository.findAll();
+
+        List<CouponPolicy> policies = new ArrayList<>();
+
+        for(CouponPolicy couponPolicy : tempPolicies){
+            if(couponPolicy.getPolicyStatus().equals(PolicyStatus.ACTIVE)){
+                policies.add(couponPolicy);
+            }
+        }
 
         return policies.stream()
                 .map(CouponPolicyResponseDto::convertToDto)
@@ -107,7 +118,6 @@ public class CouponPolicyService {
         CouponPolicy couponPolicy = couponPolicyRepository.findById(policyId).orElse(null);
         return CouponPolicyDetailResponseDto.convertToDto(
                 Objects.requireNonNull(couponPolicy));
-
     }
 
     @Transactional
@@ -126,4 +136,13 @@ public class CouponPolicyService {
 
         couponPolicyRepository.save(couponPolicy);
     }
+
+    //DB상에서 진짜 삭제는 아니고 논리적 삭제(회원이 쿠폰 내역을 확인 할 때 데이터 자체를 삭제하면 문제가 될 수 있으므로 삭제 상태로 변경)
+    @Transactional
+    public void deleteCouponPolicyById(long policyId) {
+        CouponPolicy couponPolicy = couponPolicyRepository.findById(policyId).orElse(null);
+        couponPolicy.setPolicyStatus(PolicyStatus.DELETED);
+        couponPolicyRepository.save(couponPolicy);
+    }
+
 }
