@@ -24,7 +24,6 @@ import shop.wannab.couponservice.repository.PolicyTargetCategoryRepository;
 @Service
 public class CouponPolicyService {
     private final CouponPolicyRepository couponPolicyRepository;
-    private final CouponRepository couponRepository;
     private final PolicyTargetBookRepository policyTargetBookRepository;
     private final PolicyTargetCategoryRepository policyTargetCategoryRepository;
 
@@ -35,7 +34,6 @@ public class CouponPolicyService {
             PolicyTargetCategoryRepository policyTargetCategoryRepository
             ) {
         this.couponPolicyRepository = couponPolicyRepository;
-        this.couponRepository = couponRepository;
         this.policyTargetBookRepository = policyTargetBookRepository;
         this.policyTargetCategoryRepository = policyTargetCategoryRepository;
     }
@@ -96,7 +94,7 @@ public class CouponPolicyService {
     }
 
     //쿠폰 정책 목록
-    @Transactional
+    @Transactional(readOnly = true)
     public List<CouponPolicyResponseDto> getCouponPolicies() {
         List<CouponPolicy> tempPolicies = couponPolicyRepository.findAll();
 
@@ -113,7 +111,7 @@ public class CouponPolicyService {
                 .collect(Collectors.toList());
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public CouponPolicyDetailResponseDto getCouponPolicyById(long policyId) {
         CouponPolicy couponPolicy = couponPolicyRepository.findById(policyId).orElse(null);
         return CouponPolicyDetailResponseDto.convertToDto(
