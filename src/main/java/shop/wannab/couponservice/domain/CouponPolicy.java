@@ -36,10 +36,10 @@ public class CouponPolicy {
     private DiscountType discountType;
 
     @NotNull
-    private int discountValue;
+    private Integer discountValue;
 
     @NotNull
-    private int maxDiscount;
+    private Integer maxDiscount;
 
     @NotNull
     private Integer minPurchase;
