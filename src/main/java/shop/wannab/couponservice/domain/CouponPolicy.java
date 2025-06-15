@@ -24,7 +24,7 @@ public class CouponPolicy {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     //동시성 제어 고민해볼것
-    private long couponPolicyId;
+    private Long couponPolicyId;
 
     @NotNull
     private String couponPolicyName;
@@ -42,10 +42,10 @@ public class CouponPolicy {
     private int maxDiscount;
 
     @NotNull
-    private int minPurchase;
+    private Integer minPurchase;
 
     //프론트 엔드에 코드 추가 예정
-    private int validDays;
+    private Integer validDays;
 
     private LocalDate fixedStartDate;
 

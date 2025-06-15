@@ -1,6 +1,5 @@
 package shop.wannab.couponservice.domain;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -23,10 +22,10 @@ import lombok.Setter;
 public class PolicyTargetBook {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long policyTargetBookId;
+    private Long policyTargetBookId;
 
     @NotNull
-    private long bookId;
+    private Long bookId;
 
     @OneToOne
     @JoinColumn(nullable = false)
