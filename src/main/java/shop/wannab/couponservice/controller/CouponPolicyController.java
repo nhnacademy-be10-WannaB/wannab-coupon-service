@@ -1,6 +1,7 @@
 package shop.wannab.couponservice.controller;
 
 
+import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +27,7 @@ public class CouponPolicyController {
     }
 
     @PostMapping
-    public ResponseEntity<Void> createCouponPolicy(@RequestBody CreateCouponPolicyDto createCouponPolicyDto) {
+    public ResponseEntity<Void> createCouponPolicy(@Valid @RequestBody CreateCouponPolicyDto createCouponPolicyDto) {
         CouponPolicy createdPolicy = couponPolicyService.createCouponPolicy(createCouponPolicyDto);
 
         URI location = URI.create("/api/coupon-policies/" + createdPolicy.getCouponPolicyId());
