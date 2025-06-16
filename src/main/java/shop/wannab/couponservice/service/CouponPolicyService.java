@@ -17,7 +17,6 @@ import shop.wannab.couponservice.domain.enums.DiscountType;
 import shop.wannab.couponservice.domain.enums.PolicyRule;
 import shop.wannab.couponservice.domain.enums.PolicyStatus;
 import shop.wannab.couponservice.repository.CouponPolicyRepository;
-import shop.wannab.couponservice.repository.CouponRepository;
 import shop.wannab.couponservice.repository.PolicyTargetBookRepository;
 import shop.wannab.couponservice.repository.PolicyTargetCategoryRepository;
 
@@ -29,7 +28,6 @@ public class CouponPolicyService {
 
     public CouponPolicyService(
             CouponPolicyRepository couponPolicyRepository,
-            CouponRepository couponRepository,
             PolicyTargetBookRepository policyTargetBookRepository,
             PolicyTargetCategoryRepository policyTargetCategoryRepository
             ) {
@@ -121,6 +119,7 @@ public class CouponPolicyService {
     @Transactional
     public void updateCouponPolicy(long couponPolicyId, UpdateCouponPolicyDto request) {
         CouponPolicy couponPolicy = couponPolicyRepository.findById(couponPolicyId).orElse(null);
+
         couponPolicy.setMinPurchase(request.getMinPurchase());
         couponPolicy.setDiscountValue(request.getDiscountValue());
         couponPolicy.setMaxDiscount(request.getMaxDiscount());
