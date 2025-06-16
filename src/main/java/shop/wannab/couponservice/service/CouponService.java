@@ -36,6 +36,21 @@ public class CouponService {
         saveNewCoupon(userId, welcomePolicy, "WC");
     }
 
+    @Transactional
+    public void issueGeneralCoupon(Long userId, Long couponPolicyId) {
+        CouponPolicy couponPolicy = couponPolicyRepository.findById(couponPolicyId).orElse(null);
+
+        if (couponPolicy == null) {
+            throw new IllegalArgumentException("해당 쿠폰이 없습니다.");
+        }
+
+        if (couponRepository.existsByUserIdAndCouponPolicy(userId, couponPolicy)) {
+            throw new IllegalArgumentException("이미 해당 쿠폰을 발급받았습니다.");
+        }
+
+        saveNewCoupon(userId,couponPolicy,"CST");
+    }
+
     private void saveNewCoupon(Long userId, CouponPolicy couponPolicy,String prefix) {
         String couponCode = String.format("%s%s-%s",prefix,LocalDate.now().toString().replace("-",""),
                 UUID.randomUUID().toString().substring(0,20).replace("-","").toUpperCase());

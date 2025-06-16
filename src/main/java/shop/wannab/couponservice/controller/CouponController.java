@@ -2,6 +2,7 @@ package shop.wannab.couponservice.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,5 +28,11 @@ public class CouponController {
         }
     }
 
-
+    @PostMapping("/issue/custom")
+    public ResponseEntity<String> issueCustomCoupon(
+            @RequestHeader("X-User-Id") Long userId,
+            @RequestBody Long couponPolicyId){
+        couponService.issueGeneralCoupon(userId, couponPolicyId);
+        return ResponseEntity.ok("쿠폰이 성공적으로 발급되었습니다.");
+    }
 }
