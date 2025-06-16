@@ -11,6 +11,7 @@ import shop.wannab.couponservice.domain.PolicyTargetCategory;
 import shop.wannab.couponservice.domain.dto.CouponPolicyDetailResponseDto;
 import shop.wannab.couponservice.domain.dto.CouponPolicyResponseDto;
 import shop.wannab.couponservice.domain.dto.CreateCouponPolicyDto;
+import shop.wannab.couponservice.domain.dto.UpdateCouponPolicyDto;
 import shop.wannab.couponservice.domain.enums.DiscountType;
 import shop.wannab.couponservice.domain.enums.PolicyRule;
 import shop.wannab.couponservice.repository.CouponPolicyRepository;
@@ -107,5 +108,22 @@ public class CouponPolicyService {
         return CouponPolicyDetailResponseDto.convertToDto(
                 Objects.requireNonNull(couponPolicy));
 
+    }
+
+    @Transactional
+    public void updateCouponPolicy(long couponPolicyId, UpdateCouponPolicyDto request) {
+        CouponPolicy couponPolicy = couponPolicyRepository.findById(couponPolicyId).orElse(null);
+        couponPolicy.setMinPurchase(request.getMinPurchase());
+        couponPolicy.setDiscountValue(request.getDiscountValue());
+        couponPolicy.setMaxDiscount(request.getMaxDiscount());
+
+        if(request.getValidityType().equals("FIXED")){
+            couponPolicy.setValidDays(request.getValidForDays());
+        }
+        else{
+            couponPolicy.setFixedEndDate(request.getEndDate());
+        }
+
+        couponPolicyRepository.save(couponPolicy);
     }
 }
