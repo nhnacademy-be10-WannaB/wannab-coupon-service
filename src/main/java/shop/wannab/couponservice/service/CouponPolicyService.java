@@ -1,12 +1,14 @@
 package shop.wannab.couponservice.service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import shop.wannab.couponservice.domain.CouponPolicy;
 import shop.wannab.couponservice.domain.PolicyTargetBook;
 import shop.wannab.couponservice.domain.PolicyTargetCategory;
+import shop.wannab.couponservice.domain.dto.CouponPolicyDetailResponseDto;
 import shop.wannab.couponservice.domain.dto.CouponPolicyResponseDto;
 import shop.wannab.couponservice.domain.dto.CreateCouponPolicyDto;
 import shop.wannab.couponservice.domain.enums.DiscountType;
@@ -99,4 +101,11 @@ public class CouponPolicyService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
+    public CouponPolicyDetailResponseDto getCouponPolicyById(long policyId) {
+        CouponPolicy couponPolicy = couponPolicyRepository.findById(policyId).orElse(null);
+        return CouponPolicyDetailResponseDto.convertToDto(
+                Objects.requireNonNull(couponPolicy));
+
+    }
 }
