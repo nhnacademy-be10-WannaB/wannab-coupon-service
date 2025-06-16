@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import shop.wannab.couponservice.domain.enums.DiscountType;
 import shop.wannab.couponservice.domain.enums.PolicyRule;
+import shop.wannab.couponservice.domain.enums.PolicyStatus;
 
 @Entity
 @Getter
@@ -51,4 +52,6 @@ public class CouponPolicy {
 
     private LocalDate fixedEndDate;
 
+    @NotNull
+    private PolicyStatus policyStatus;
 }
