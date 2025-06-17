@@ -1,4 +1,4 @@
-package shop.wannab.couponservice.domain.dto;
+package shop.wannab.couponservice.domain.couponpolicy.dto;
 
 import lombok.Getter;
 import lombok.Setter;
