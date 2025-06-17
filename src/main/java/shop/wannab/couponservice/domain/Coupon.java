@@ -8,6 +8,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -17,20 +19,22 @@ import shop.wannab.couponservice.domain.enums.CouponStatus;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Coupon {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long couponId;
 
     @NotNull
-    private String userId;
+    private Long userId;
 
     @ManyToOne
     @JoinColumn(nullable = false)
     private CouponPolicy couponPolicy;
 
     @NotNull
-    private String couponPolicyName;
+    private String couponCode;
 
     @NotNull
     private LocalDate issuedAt;
@@ -41,15 +45,13 @@ public class Coupon {
     @NotNull
     private LocalDate endDate;
 
-    @NotNull
+
     private LocalDate usedAt;
 
     @NotNull
     private CouponStatus status;
 
-    @NotNull
     private Long orderId;
 
-    @NotNull
     private Long orderBookId;
 }
