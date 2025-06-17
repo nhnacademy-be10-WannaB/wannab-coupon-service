@@ -1,16 +1,13 @@
 package shop.wannab.couponservice.service;
 
-import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import shop.wannab.couponservice.domain.Coupon;
 import shop.wannab.couponservice.domain.CouponPolicy;
-import shop.wannab.couponservice.domain.enums.CouponStatus;
 import shop.wannab.couponservice.domain.enums.PolicyRule;
 import shop.wannab.couponservice.repository.CouponPolicyRepository;
 import shop.wannab.couponservice.repository.CouponRepository;
@@ -96,19 +93,7 @@ public class CouponService {
     }
 
     private void saveNewCoupon(Long userId, CouponPolicy couponPolicy,String prefix) {
-        String couponCode = String.format("%s%s-%s",prefix,LocalDate.now().toString().replace("-",""),
-                UUID.randomUUID().toString().substring(0,20).replace("-","").toUpperCase());
-
-        Coupon coupon = Coupon.builder()
-                .userId(userId)
-                .couponPolicy(couponPolicy)
-                .couponCode(couponCode)
-                .issuedAt(LocalDate.now())
-                .startDate(LocalDate.now())
-                .endDate(couponPolicy.getFixedEndDate())
-                .status(CouponStatus.NOT_USED)
-                .build();
-
-        couponRepository.save(coupon);
+        Coupon createdCoupon = Coupon.createNewCoupon(userId, couponPolicy, prefix);
+        couponRepository.save(createdCoupon);
     }
 }

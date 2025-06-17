@@ -8,6 +8,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -54,4 +55,20 @@ public class Coupon {
     private Long orderId;
 
     private Long orderBookId;
+
+    public static Coupon createNewCoupon(Long userId, CouponPolicy couponPolicy,String prefix){
+        String couponCode = String.format("%s%s-%s",prefix,LocalDate.now().toString().replace("-",""),
+                UUID.randomUUID().toString().substring(0,20).replace("-","").toUpperCase());
+
+        return Coupon.builder()
+                .userId(userId)
+                .couponPolicy(couponPolicy)
+                .couponCode(couponCode)
+                .issuedAt(LocalDate.now())
+                .startDate(LocalDate.now())
+                .endDate(couponPolicy.getFixedEndDate())
+                .status(CouponStatus.NOT_USED)
+                .build();
+
+    }
 }
