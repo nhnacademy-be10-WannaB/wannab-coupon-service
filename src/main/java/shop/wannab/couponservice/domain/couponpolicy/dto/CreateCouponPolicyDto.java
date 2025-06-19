@@ -12,9 +12,9 @@ public class CreateCouponPolicyDto {
     @NotNull
     private String couponType;
 
-    private long bookId;
+    private long targetBookId;
 
-    private long categoryId;
+    private long targetCategoryId;
 
     @NotNull
     private String name;
@@ -29,7 +29,7 @@ public class CreateCouponPolicyDto {
 
     private int maxDiscount;
 
-    private int validForDays;
+    private int validDays;
 
     private LocalDate startDate;
 
@@ -38,4 +38,5 @@ public class CreateCouponPolicyDto {
     private boolean isBirthday;
 
     private boolean isWelcome;
+
 }
