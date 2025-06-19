@@ -8,7 +8,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import shop.wannab.couponservice.domain.Coupon;
 import shop.wannab.couponservice.domain.CouponPolicy;
-import shop.wannab.couponservice.domain.enums.PolicyRule;
+import shop.wannab.couponservice.domain.enums.CouponType;
 import shop.wannab.couponservice.repository.CouponPolicyRepository;
 import shop.wannab.couponservice.repository.CouponRepository;
 
@@ -26,7 +26,7 @@ public class CouponService {
 
     @Transactional
     public void issueWelcomeCouponForNewUser(Long userId) {
-        CouponPolicy welcomePolicy = couponPolicyRepository.findByPolicyRule(PolicyRule.WELCOME);
+        CouponPolicy welcomePolicy = couponPolicyRepository.findByCouponType(CouponType.WELCOME);
 
         if(welcomePolicy == null) {
             throw new IllegalArgumentException("웰컴 쿠폰이 없습니다.");
@@ -58,7 +58,7 @@ public class CouponService {
     public void issueBirthdayCoupon(int month) {
         System.out.println("생일 쿠폰 발급 로직 시작 (월: " + month + ")");
 
-        CouponPolicy birthdayPolicy = couponPolicyRepository.findByPolicyRule(PolicyRule.BIRTHDAY);
+        CouponPolicy birthdayPolicy = couponPolicyRepository.findByCouponType(CouponType.BIRTHDAY);
         if (birthdayPolicy == null) {
             throw new IllegalArgumentException("해당 쿠폰이 없습니다.");
         }
