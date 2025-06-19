@@ -1,14 +1,12 @@
 package shop.wannab.couponservice.service;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import shop.wannab.couponservice.domain.CouponPolicy;
 import shop.wannab.couponservice.domain.PolicyTargetBook;
 import shop.wannab.couponservice.domain.PolicyTargetCategory;
-import shop.wannab.couponservice.domain.couponpolicy.dto.CouponPolicyDetailResponseDto;
 import shop.wannab.couponservice.domain.couponpolicy.dto.CouponPolicyResponseDto;
 import shop.wannab.couponservice.domain.couponpolicy.dto.CreateCouponPolicyDto;
 import shop.wannab.couponservice.domain.couponpolicy.dto.UpdateCouponPolicyDto;
@@ -106,7 +104,7 @@ public class CouponPolicyService {
 
 
                         if (bookId != null) {
-                            bookName = CouponPolicyDetailResponseDto.DUMMY_BOOKS.get(bookId);
+                            bookName = CouponPolicyResponseDto.DUMMY_BOOKS.get(bookId);
                         }
 
                     } else if (policy.getCouponType() == CouponType.CATEGORY) {
@@ -124,12 +122,12 @@ public class CouponPolicyService {
                 .orElse(null);
     }
 
-    @Transactional(readOnly = true)
-    public CouponPolicyDetailResponseDto getCouponPolicyById(long policyId) {
-        CouponPolicy couponPolicy = couponPolicyRepository.findById(policyId).orElse(null);
-        return CouponPolicyDetailResponseDto.from(
-                Objects.requireNonNull(couponPolicy),null,null);
-    }
+//    @Transactional(readOnly = true)
+//    public CouponPolicyDetailResponseDto getCouponPolicyById(long policyId) {
+//        CouponPolicy couponPolicy = couponPolicyRepository.findById(policyId).orElse(null);
+//        return CouponPolicyDetailResponseDto.from(
+//                Objects.requireNonNull(couponPolicy),null,null);
+//    }
 
     @Transactional
     public void updateCouponPolicy(long couponPolicyId, UpdateCouponPolicyDto request) {

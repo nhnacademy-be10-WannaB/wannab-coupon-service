@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import shop.wannab.couponservice.domain.couponpolicy.dto.CouponPolicyDetailResponseDto;
 import shop.wannab.couponservice.domain.couponpolicy.dto.CouponPolicyResponseDto;
 import shop.wannab.couponservice.domain.couponpolicy.dto.CreateCouponPolicyDto;
 import shop.wannab.couponservice.domain.couponpolicy.dto.UpdateCouponPolicyDto;
@@ -42,11 +41,11 @@ public class CouponPolicyController {
     }
 
     //쿠폰 정책 상세 조회
-    @GetMapping("/{policyId}")
-    public ResponseEntity<CouponPolicyDetailResponseDto> getCouponPolicyDetail(@PathVariable Long policyId) {
-        CouponPolicyDetailResponseDto respDto = couponPolicyService.getCouponPolicyById(policyId);
-        return ResponseEntity.ok(respDto);
-    }
+//    @GetMapping("/{policyId}")
+//    public ResponseEntity<CouponPolicyDetailResponseDto> getCouponPolicyDetail(@PathVariable Long policyId) {
+//        CouponPolicyDetailResponseDto respDto = couponPolicyService.getCouponPolicyById(policyId);
+//        return ResponseEntity.ok(respDto);
+//    }
 
     @PutMapping("/{policyId}")
     public ResponseEntity<Void> updateCouponPolicy(@PathVariable Long policyId, @Valid @RequestBody UpdateCouponPolicyDto updateCouponPolicyDto) {
