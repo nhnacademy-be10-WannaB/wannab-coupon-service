@@ -31,7 +31,7 @@ public class CouponPolicy {
     private String couponPolicyName;
 
     @NotNull
-    private PolicyRule policyRule;
+    private CouponType couponType;
 
     @NotNull
     private DiscountType discountType;
