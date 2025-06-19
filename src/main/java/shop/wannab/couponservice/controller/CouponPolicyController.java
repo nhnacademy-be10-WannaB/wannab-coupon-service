@@ -2,7 +2,6 @@ package shop.wannab.couponservice.controller;
 
 
 import jakarta.validation.Valid;
-import java.net.URI;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -13,7 +12,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import shop.wannab.couponservice.domain.CouponPolicy;
 import shop.wannab.couponservice.domain.couponpolicy.dto.CouponPolicyDetailResponseDto;
 import shop.wannab.couponservice.domain.couponpolicy.dto.CouponPolicyResponseDto;
 import shop.wannab.couponservice.domain.couponpolicy.dto.CreateCouponPolicyDto;
@@ -33,10 +31,8 @@ public class CouponPolicyController {
 
     @PostMapping
     public ResponseEntity<Void> createCouponPolicy(@Valid @RequestBody CreateCouponPolicyDto createCouponPolicyDto) {
-        CouponPolicy createdPolicy = couponPolicyService.createCouponPolicy(createCouponPolicyDto);
-
-        URI location = URI.create("/api/coupon-policies/" + createdPolicy.getCouponPolicyId());
-        return ResponseEntity.created(location).build();
+        couponPolicyService.createCouponPolicy(createCouponPolicyDto);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping
