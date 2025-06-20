@@ -60,3 +60,46 @@ jobs:
           script: |
             chmod +x /home/be10/be10-team5/script/coupon-service-deploy.sh
             /home/be10/be10-team5/script/coupon-service-deploy.sh v2 ${{ github.sha }}
+  notify-success:
+    needs: build-and-deploy
+    if: ${{ success() }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Success
+        run: |
+          curl -H "Content-Type: application/json" \
+               -X POST \
+               -d '{
+                 "botName": "wannab bot",
+                 "text": "✅ 배포 성공!",
+                 "attachments": [
+                   {
+                      "title" : "${{ github.repository }} 배포 성공",
+                      "text" : "👤 머지한 사람: ${{ github.actor }}\n브랜치: ${{ github.base_ref }}",
+                      "color" : "green"
+                   }
+                 ]
+               }' \
+               "${{ secrets.DOORAY_WEBHOOK_URL }}"
+
+  notify-failure:
+    needs: build-and-deploy
+    if: ${{ failure() }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Failure
+        run: |
+          curl -H "Content-Type: application/json" \
+               -X POST \
+               -d '{
+                 "botName": "wannab bot",
+                 "text": "❌ 배포 실패...",
+                 "attachments": [
+                   {
+                      "title" : "${{ github.repository }} 배포 실패",
+                      "text" : "👤 머지한 사람: ${{ github.actor }}\n브랜치: ${{ github.base_ref }}",
+                      "color" : "red"
+                   }
+                 ]
+               }' \
+               "${{ secrets.DOORAY_WEBHOOK_URL }}"
