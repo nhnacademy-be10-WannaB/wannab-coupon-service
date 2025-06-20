@@ -1,20 +1,17 @@
 package shop.wannab.couponservice.service;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import shop.wannab.couponservice.domain.CouponPolicy;
 import shop.wannab.couponservice.domain.PolicyTargetBook;
 import shop.wannab.couponservice.domain.PolicyTargetCategory;
-import shop.wannab.couponservice.domain.dto.CouponPolicyDetailResponseDto;
-import shop.wannab.couponservice.domain.dto.CouponPolicyResponseDto;
-import shop.wannab.couponservice.domain.dto.CreateCouponPolicyDto;
-import shop.wannab.couponservice.domain.dto.UpdateCouponPolicyDto;
+import shop.wannab.couponservice.domain.couponpolicy.dto.CouponPolicyResponseDto;
+import shop.wannab.couponservice.domain.couponpolicy.dto.CreateCouponPolicyDto;
+import shop.wannab.couponservice.domain.couponpolicy.dto.UpdateCouponPolicyDto;
+import shop.wannab.couponservice.domain.enums.CouponType;
 import shop.wannab.couponservice.domain.enums.DiscountType;
-import shop.wannab.couponservice.domain.enums.PolicyRule;
 import shop.wannab.couponservice.domain.enums.PolicyStatus;
 import shop.wannab.couponservice.repository.CouponPolicyRepository;
 import shop.wannab.couponservice.repository.PolicyTargetBookRepository;
@@ -37,44 +34,44 @@ public class CouponPolicyService {
     }
 
     @Transactional
-    public CouponPolicy createCouponPolicy(CreateCouponPolicyDto request){
+    public void createCouponPolicy(CreateCouponPolicyDto request){
         CouponPolicy couponPolicy = CouponPolicy.builder()
                 .couponPolicyName(request.getName())
                 .discountType(DiscountType.valueOf(request.getDiscountType()))
                 .discountValue(request.getDiscountValue())
                 .maxDiscount(request.getMaxDiscount())
                 .minPurchase(request.getMinPurchase())
-                .validDays(request.getValidForDays())
+                .validDays(request.getValidDays())
                 .fixedStartDate(request.getStartDate())
                 .fixedEndDate(request.getEndDate())
                 .policyStatus(PolicyStatus.ACTIVE).build();
 
         if(request.getCouponType().equals("NORMAL")){
             if(request.isBirthday()){
-                couponPolicy.setPolicyRule(PolicyRule.BIRTHDAY);
+                couponPolicy.setCouponType(CouponType.BIRTHDAY);
             }
             else if(request.isWelcome()){
-                couponPolicy.setPolicyRule(PolicyRule.WELCOME);
+                couponPolicy.setCouponType(CouponType.WELCOME);
             }
             else{
-                couponPolicy.setPolicyRule(PolicyRule.CUSTOM);
+                couponPolicy.setCouponType(CouponType.CUSTOM);
             }
             couponPolicyRepository.save(couponPolicy);
         }
 
         else if(request.getCouponType().equals("BOOK")){
+            couponPolicy.setCouponType(CouponType.BOOK);
             couponPolicyRepository.save(couponPolicy);
-            long bookId = request.getBookId();
+            long bookId = request.getTargetBookId();
             createPolicyTargetBook(bookId, couponPolicy);
         }
         else{
+            couponPolicy.setCouponType(CouponType.CATEGORY);
             couponPolicyRepository.save(couponPolicy);
-            long categoryId = request.getCategoryId();
+            long categoryId = request.getTargetCategoryId();
             createPolicyTargetCategory(categoryId, couponPolicy);
         }
 
-
-        return couponPolicy;
     }
 
     private void createPolicyTargetBook(long bookId,CouponPolicy couponPolicy){
@@ -94,27 +91,43 @@ public class CouponPolicyService {
     //쿠폰 정책 목록
     @Transactional(readOnly = true)
     public List<CouponPolicyResponseDto> getCouponPolicies() {
-        List<CouponPolicy> tempPolicies = couponPolicyRepository.findAll();
+        List<CouponPolicy> activePolicies = couponPolicyRepository.findByPolicyStatus(PolicyStatus.ACTIVE);
 
-        List<CouponPolicy> policies = new ArrayList<>();
+        return activePolicies.stream()
+                .map(policy -> {
+                    String bookName = null;
+                    String categoryName = null;
 
-        for(CouponPolicy couponPolicy : tempPolicies){
-            if(couponPolicy.getPolicyStatus().equals(PolicyStatus.ACTIVE)){
-                policies.add(couponPolicy);
-            }
-        }
+                    if (policy.getCouponType() == CouponType.BOOK) {
 
-        return policies.stream()
-                .map(CouponPolicyResponseDto::from)
+                        Long bookId = findBookIdByCouponPolicy(policy);
+
+
+                        if (bookId != null) {
+                            bookName = CouponPolicyResponseDto.DUMMY_BOOKS.get(bookId);
+                        }
+
+                    } else if (policy.getCouponType() == CouponType.CATEGORY) {
+
+                    }
+
+                    return CouponPolicyResponseDto.from(policy, bookName, categoryName);
+                })
                 .collect(Collectors.toList());
     }
 
-    @Transactional(readOnly = true)
-    public CouponPolicyDetailResponseDto getCouponPolicyById(long policyId) {
-        CouponPolicy couponPolicy = couponPolicyRepository.findById(policyId).orElse(null);
-        return CouponPolicyDetailResponseDto.from(
-                Objects.requireNonNull(couponPolicy));
+    private Long findBookIdByCouponPolicy(CouponPolicy couponPolicy) {
+        return policyTargetBookRepository.findByCouponPolicy(couponPolicy)
+                .map(PolicyTargetBook::getBookId)
+                .orElse(null);
     }
+
+//    @Transactional(readOnly = true)
+//    public CouponPolicyDetailResponseDto getCouponPolicyById(long policyId) {
+//        CouponPolicy couponPolicy = couponPolicyRepository.findById(policyId).orElse(null);
+//        return CouponPolicyDetailResponseDto.from(
+//                Objects.requireNonNull(couponPolicy),null,null);
+//    }
 
     @Transactional
     public void updateCouponPolicy(long couponPolicyId, UpdateCouponPolicyDto request) {

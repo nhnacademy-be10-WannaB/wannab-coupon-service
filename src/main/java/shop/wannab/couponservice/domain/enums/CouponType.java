@@ -1,7 +1,9 @@
 package shop.wannab.couponservice.domain.enums;
 
-public enum PolicyRule {
+public enum CouponType {
     CUSTOM,
     BIRTHDAY,
-    WELCOME
+    WELCOME,
+    BOOK,
+    CATEGORY
 }

@@ -1,4 +1,4 @@
-package shop.wannab.couponservice.domain.dto;
+package shop.wannab.couponservice.domain.couponpolicy.dto;
 
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
@@ -9,12 +9,12 @@ import lombok.Setter;
 @Setter
 public class CreateCouponPolicyDto {
     //쿠폰 등록 모달 참조
-    private long bookId;
-
-    private long categoryId;
-
     @NotNull
     private String couponType;
+
+    private long targetBookId;
+
+    private long targetCategoryId;
 
     @NotNull
     private String name;
@@ -29,7 +29,7 @@ public class CreateCouponPolicyDto {
 
     private int maxDiscount;
 
-    private int validForDays;
+    private int validDays;
 
     private LocalDate startDate;
 
@@ -38,4 +38,5 @@ public class CreateCouponPolicyDto {
     private boolean isBirthday;
 
     private boolean isWelcome;
+
 }

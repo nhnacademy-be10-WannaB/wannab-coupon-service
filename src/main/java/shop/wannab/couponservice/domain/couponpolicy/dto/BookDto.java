@@ -1,4 +1,4 @@
-package shop.wannab.couponservice.domain.dto;
+package shop.wannab.couponservice.domain.couponpolicy.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,6 +9,6 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserDto {
-    private long userId;
+public class BookDto {
+    private long bookId;
 }
