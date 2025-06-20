@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>shop.wannab</groupId>
-	<artifactId>couponservice</artifactId>
+	<artifactId>coupon-service</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>couponservice</name>
 	<description>CouponService</description>
