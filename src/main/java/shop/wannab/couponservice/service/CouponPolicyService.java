@@ -107,10 +107,10 @@ public class CouponPolicyService {
                         }
 
                     } else if (policy.getCouponType() == CouponType.CATEGORY) {
-                        Long categoryId = findCategoryIdByCouponPolicy(policy);
-                        if (categoryId != null) {
-                            categoryName = categoryRepository.findById(categoryId).get().getName();
-                        }
+                        // Long categoryId = findCategoryIdByCouponPolicy(policy);
+                        // if (categoryId != null) {
+                        //     categoryName = categoryRepository.findById(categoryId).get().getName();
+                        // }
                     }
 
                     return CouponPolicyResponseDto.from(policy, bookName, categoryName);
