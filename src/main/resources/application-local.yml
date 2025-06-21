@@ -1,7 +1,3 @@
-server:
-  port: 8081
-  shutdown: graceful
-
 spring:
   application:
     name: coupon-service
@@ -13,16 +9,9 @@ spring:
     config:
       enabled: false
 
+server:
+  shutdown: graceful
+
 eureka:
   client:
     enabled: false
-
----
-
-spring:
-  config:
-    activate:
-      on-profile: develop
-  
-  
-  import: "optional:configserver:http://config-server:10394/"
