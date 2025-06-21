@@ -13,7 +13,6 @@ import shop.wannab.couponservice.domain.couponpolicy.dto.UpdateCouponPolicyDto;
 import shop.wannab.couponservice.domain.enums.CouponType;
 import shop.wannab.couponservice.domain.enums.DiscountType;
 import shop.wannab.couponservice.domain.enums.PolicyStatus;
-import shop.wannab.couponservice.repository.CategoryRepository;
 import shop.wannab.couponservice.repository.CouponPolicyRepository;
 import shop.wannab.couponservice.repository.PolicyTargetBookRepository;
 import shop.wannab.couponservice.repository.PolicyTargetCategoryRepository;
@@ -23,17 +22,14 @@ public class CouponPolicyService {
     private final CouponPolicyRepository couponPolicyRepository;
     private final PolicyTargetBookRepository policyTargetBookRepository;
     private final PolicyTargetCategoryRepository policyTargetCategoryRepository;
-    private final CategoryRepository categoryRepository;
 
     public CouponPolicyService(
             CouponPolicyRepository couponPolicyRepository,
             PolicyTargetBookRepository policyTargetBookRepository,
-            PolicyTargetCategoryRepository policyTargetCategoryRepository,
-            CategoryRepository categoryRepository) {
+            PolicyTargetCategoryRepository policyTargetCategoryRepository) {
         this.couponPolicyRepository = couponPolicyRepository;
         this.policyTargetBookRepository = policyTargetBookRepository;
         this.policyTargetCategoryRepository = policyTargetCategoryRepository;
-        this.categoryRepository = categoryRepository;
     }
 
     @Transactional
