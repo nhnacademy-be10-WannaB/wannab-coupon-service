@@ -1,8 +1,28 @@
 server:
   port: 8081
+  shutdown: graceful
 
 spring:
   application:
     name: coupon-service
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+  cloud:
+    discovery:
+      enabled: false
+    config:
+      enabled: false
+
+eureka:
+  client:
+    enabled: false
+
+---
+
+spring:
   config:
-    import: "optional:configserver:http://config-server:10394/"
+    activate:
+      on-profile: develop
+  
+  
+  import: "optional:configserver:http://config-server:10394/"

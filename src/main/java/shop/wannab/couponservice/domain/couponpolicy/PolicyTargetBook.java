@@ -1,4 +1,4 @@
-package shop.wannab.couponservice.domain;
+package shop.wannab.couponservice.domain.couponpolicy;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
