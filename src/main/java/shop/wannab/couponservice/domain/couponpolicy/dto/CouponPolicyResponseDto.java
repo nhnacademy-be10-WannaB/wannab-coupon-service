@@ -3,7 +3,7 @@ package shop.wannab.couponservice.domain.couponpolicy.dto;
 import java.util.Map;
 import lombok.Getter;
 import lombok.Setter;
-import shop.wannab.couponservice.domain.CouponPolicy;
+import shop.wannab.couponservice.domain.couponpolicy.CouponPolicy;
 import shop.wannab.couponservice.domain.enums.CouponType;
 import shop.wannab.couponservice.domain.enums.DiscountType;
 
@@ -51,9 +51,9 @@ public class CouponPolicyResponseDto {
             dto.setPeriod(String.format("%s ~ %s", policy.getFixedStartDate(), policy.getFixedEndDate()));
         }
         if(policy.getCouponType() == CouponType.BOOK){
-            dto.purchaseTerm = bookName;
+            dto.purchaseTerm = String.format("%s 구매시", bookName);
         } else if(policy.getCouponType() == CouponType.CATEGORY){
-            dto.purchaseTerm = categoryName;
+            dto.purchaseTerm = String.format("%s 카테고리 도서 구매시", categoryName);
         } else{
             dto.purchaseTerm = String.format("%,d원 이상", policy.getMinPurchase());
             dto.autoIssue = true;

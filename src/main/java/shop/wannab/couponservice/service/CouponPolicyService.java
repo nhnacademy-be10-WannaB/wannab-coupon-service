@@ -4,9 +4,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import shop.wannab.couponservice.domain.CouponPolicy;
-import shop.wannab.couponservice.domain.PolicyTargetBook;
-import shop.wannab.couponservice.domain.PolicyTargetCategory;
+import shop.wannab.couponservice.domain.couponpolicy.CouponPolicy;
+import shop.wannab.couponservice.domain.couponpolicy.PolicyTargetBook;
+import shop.wannab.couponservice.domain.couponpolicy.PolicyTargetCategory;
 import shop.wannab.couponservice.domain.couponpolicy.dto.CouponPolicyResponseDto;
 import shop.wannab.couponservice.domain.couponpolicy.dto.CreateCouponPolicyDto;
 import shop.wannab.couponservice.domain.couponpolicy.dto.UpdateCouponPolicyDto;
@@ -26,8 +26,7 @@ public class CouponPolicyService {
     public CouponPolicyService(
             CouponPolicyRepository couponPolicyRepository,
             PolicyTargetBookRepository policyTargetBookRepository,
-            PolicyTargetCategoryRepository policyTargetCategoryRepository
-            ) {
+            PolicyTargetCategoryRepository policyTargetCategoryRepository) {
         this.couponPolicyRepository = couponPolicyRepository;
         this.policyTargetBookRepository = policyTargetBookRepository;
         this.policyTargetCategoryRepository = policyTargetCategoryRepository;
@@ -108,7 +107,10 @@ public class CouponPolicyService {
                         }
 
                     } else if (policy.getCouponType() == CouponType.CATEGORY) {
-
+                        // Long categoryId = findCategoryIdByCouponPolicy(policy);
+                        // if (categoryId != null) {
+                        //     categoryName = categoryRepository.findById(categoryId).get().getName();
+                        // }
                     }
 
                     return CouponPolicyResponseDto.from(policy, bookName, categoryName);
@@ -122,12 +124,11 @@ public class CouponPolicyService {
                 .orElse(null);
     }
 
-//    @Transactional(readOnly = true)
-//    public CouponPolicyDetailResponseDto getCouponPolicyById(long policyId) {
-//        CouponPolicy couponPolicy = couponPolicyRepository.findById(policyId).orElse(null);
-//        return CouponPolicyDetailResponseDto.from(
-//                Objects.requireNonNull(couponPolicy),null,null);
-//    }
+    private Long findCategoryIdByCouponPolicy(CouponPolicy couponPolicy) {
+        return policyTargetCategoryRepository.findByCouponPolicy(couponPolicy)
+                .map(PolicyTargetCategory::getCategoryId)
+                .orElse(null);
+    }
 
     @Transactional
     public void updateCouponPolicy(long couponPolicyId, UpdateCouponPolicyDto request) {

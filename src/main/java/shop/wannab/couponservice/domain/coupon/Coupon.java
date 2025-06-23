@@ -1,4 +1,4 @@
-package shop.wannab.couponservice.domain;
+package shop.wannab.couponservice.domain.coupon;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -14,6 +14,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import shop.wannab.couponservice.domain.couponpolicy.CouponPolicy;
 import shop.wannab.couponservice.domain.enums.CouponStatus;
 
 @Entity
