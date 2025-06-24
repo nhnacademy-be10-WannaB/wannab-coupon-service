@@ -28,6 +28,6 @@ public class PolicyTargetBook {
     private Long bookId;
 
     @OneToOne
-    @JoinColumn(nullable = false)
+    @JoinColumn(name = "coupon_policy_id",nullable = false)
     private CouponPolicy couponPolicy;
 }
