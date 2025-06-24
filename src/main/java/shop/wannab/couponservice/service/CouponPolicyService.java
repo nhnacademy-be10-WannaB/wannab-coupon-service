@@ -1,6 +1,5 @@
 package shop.wannab.couponservice.service;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -8,13 +7,11 @@ import java.util.Map;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import shop.wannab.couponservice.category.category.CategoryService;
 import shop.wannab.couponservice.domain.couponpolicy.CouponPolicy;
 import shop.wannab.couponservice.domain.couponpolicy.PolicyTargetBook;
 import shop.wannab.couponservice.domain.couponpolicy.PolicyTargetCategory;
 import shop.wannab.couponservice.domain.couponpolicy.dto.CouponPolicyResponseDto;
 import shop.wannab.couponservice.domain.couponpolicy.dto.CreateCouponPolicyDto;
-import shop.wannab.couponservice.domain.couponpolicy.dto.IssuableCouponPolicyDto;
 import shop.wannab.couponservice.domain.enums.CouponType;
 import shop.wannab.couponservice.domain.enums.DiscountType;
 import shop.wannab.couponservice.domain.enums.PolicyStatus;
@@ -28,20 +25,19 @@ public class CouponPolicyService {
     private final CouponPolicyRepository couponPolicyRepository;
     private final PolicyTargetBookRepository policyTargetBookRepository;
     private final PolicyTargetCategoryRepository policyTargetCategoryRepository;
-    private final CategoryService categoryService;
+    //private final CategoryService categoryService;
     private final CouponRepositoryImpl couponRepositoryImpl;
 
     public CouponPolicyService(
             CouponPolicyRepository couponPolicyRepository,
             PolicyTargetBookRepository policyTargetBookRepository,
             PolicyTargetCategoryRepository policyTargetCategoryRepository,
-            CategoryService categoryService,
             CouponRepositoryImpl couponRepositoryImpl
     ) {
         this.couponPolicyRepository = couponPolicyRepository;
         this.policyTargetBookRepository = policyTargetBookRepository;
         this.policyTargetCategoryRepository = policyTargetCategoryRepository;
-        this.categoryService = categoryService;
+        //this.categoryService = categoryService;
         this.couponRepositoryImpl = couponRepositoryImpl;
     }
 
@@ -160,28 +156,28 @@ public class CouponPolicyService {
     }
 
 
-    @Transactional(readOnly = true)
-    public List<IssuableCouponPolicyDto> findIssuablePoliciesForBook(Long bookId, Long categoryId) {
-        List<IssuableCouponPolicyDto> issuableCouponPolicyDtoList = new ArrayList<>();
-        PolicyTargetBook policyTargetBook = policyTargetBookRepository.findByBookId(bookId).orElse(null);
-        PolicyTargetCategory policyTargetCategory = policyTargetCategoryRepository.findByCategoryId(categoryId)
-                .orElse(null);
-
-        if (policyTargetBook != null) {
-            if (policyTargetBook.getCouponPolicy().getFixedEndDate().isAfter(LocalDate.now())) {
-                issuableCouponPolicyDtoList.add(new IssuableCouponPolicyDto(policyTargetBook.getCouponPolicy()));
-            }
-        }
-        if (policyTargetCategory != null) {
-            //본인 포함 조상 다 가져옴 컴퓨터,프로그래밍 언어
-            List<Long> ancestorCategoryIds = categoryService.getAncestorCategoryIds(categoryId);
-            List<CouponPolicy> couponPolicies = couponRepositoryImpl.findActiveCouponPolicies(ancestorCategoryIds);
-            for (CouponPolicy couponPolicy : couponPolicies) {
-                issuableCouponPolicyDtoList.add(new IssuableCouponPolicyDto(couponPolicy));
-            }
-        }
-        return issuableCouponPolicyDtoList;
-    }
+//    @Transactional(readOnly = true)
+//    public List<IssuableCouponPolicyDto> findIssuablePoliciesForBook(Long bookId, Long categoryId) {
+//        List<IssuableCouponPolicyDto> issuableCouponPolicyDtoList = new ArrayList<>();
+//        PolicyTargetBook policyTargetBook = policyTargetBookRepository.findByBookId(bookId).orElse(null);
+//        PolicyTargetCategory policyTargetCategory = policyTargetCategoryRepository.findByCategoryId(categoryId)
+//                .orElse(null);
+//
+//        if (policyTargetBook != null) {
+//            if (policyTargetBook.getCouponPolicy().getFixedEndDate().isAfter(LocalDate.now())) {
+//                issuableCouponPolicyDtoList.add(new IssuableCouponPolicyDto(policyTargetBook.getCouponPolicy()));
+//            }
+//        }
+//        if (policyTargetCategory != null) {
+//            //본인 포함 조상 다 가져옴 컴퓨터,프로그래밍 언어
+//            List<Long> ancestorCategoryIds = categoryService.getAncestorCategoryIds(categoryId);
+//            List<CouponPolicy> couponPolicies = couponRepositoryImpl.findActiveCouponPolicies(ancestorCategoryIds);
+//            for (CouponPolicy couponPolicy : couponPolicies) {
+//                issuableCouponPolicyDtoList.add(new IssuableCouponPolicyDto(couponPolicy));
+//            }
+//        }
+//        return issuableCouponPolicyDtoList;
+//    }
 
     //    @Transactional
 //    public void updateCouponPolicy(long couponPolicyId, UpdateCouponPolicyDto request) {
