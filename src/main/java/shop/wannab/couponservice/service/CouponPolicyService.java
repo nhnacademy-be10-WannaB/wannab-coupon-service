@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import shop.wannab.couponservice.category.category.CategoryService;
+import shop.wannab.couponservice.domain.category.category.CategoryService;
 import shop.wannab.couponservice.domain.couponpolicy.CouponPolicy;
 import shop.wannab.couponservice.domain.couponpolicy.PolicyTargetBook;
 import shop.wannab.couponservice.domain.couponpolicy.PolicyTargetCategory;

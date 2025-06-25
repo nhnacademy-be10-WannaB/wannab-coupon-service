@@ -6,7 +6,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import shop.wannab.couponservice.category.category.dto.CategoryHierarchyDto;
+import shop.wannab.couponservice.domain.category.category.dto.CategoryHierarchyDto;
 
 //TODO: api 경로,book-service url 경로 정리
 @FeignClient(name = "book-service",url = "${feign.client.book-service.url}")

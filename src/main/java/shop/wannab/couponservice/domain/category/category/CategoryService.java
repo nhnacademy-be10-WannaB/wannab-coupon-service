@@ -1,4 +1,4 @@
-package shop.wannab.couponservice.category.category;
+package shop.wannab.couponservice.domain.category.category;
 
 import jakarta.annotation.PostConstruct;
 import java.util.ArrayList;
@@ -8,8 +8,8 @@ import java.util.Map;
 import lombok.Getter;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import shop.wannab.couponservice.category.category.dto.CategoryHierarchyDto;
 import shop.wannab.couponservice.client.BookServiceClient;
+import shop.wannab.couponservice.domain.category.category.dto.CategoryHierarchyDto;
 
 @Service
 public class CategoryService {

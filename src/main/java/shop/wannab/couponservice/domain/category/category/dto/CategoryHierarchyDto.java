@@ -1,4 +1,4 @@
-package shop.wannab.couponservice.category.category.dto;
+package shop.wannab.couponservice.domain.category.category.dto;
 
 
 import java.util.List;
