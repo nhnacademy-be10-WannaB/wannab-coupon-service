@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import shop.wannab.couponservice.domain.coupon.dto.CouponResponseToUserDto;
 import shop.wannab.couponservice.domain.couponpolicy.dto.IssuableCouponPolicyDto;
 import shop.wannab.couponservice.service.CouponPolicyService;
 import shop.wannab.couponservice.service.CouponService;
@@ -50,6 +51,9 @@ public class CouponController {
         return ResponseEntity.ok(couponList);
     }
 
-
-
+    @GetMapping("/me")
+    public ResponseEntity<List<CouponResponseToUserDto>> getUserCoupons(
+            @RequestHeader("X-User-Id") Long userId){
+        return ResponseEntity.ok(couponService.getUserCoupons(userId));
+    }
 }
