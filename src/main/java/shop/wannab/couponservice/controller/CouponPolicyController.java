@@ -8,13 +8,11 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import shop.wannab.couponservice.domain.couponpolicy.dto.CouponPolicyResponseDto;
 import shop.wannab.couponservice.domain.couponpolicy.dto.CreateCouponPolicyDto;
-import shop.wannab.couponservice.domain.couponpolicy.dto.UpdateCouponPolicyDto;
 import shop.wannab.couponservice.service.CouponPolicyService;
 
 
@@ -47,11 +45,11 @@ public class CouponPolicyController {
 //        return ResponseEntity.ok(respDto);
 //    }
 
-    @PutMapping("/{policyId}")
-    public ResponseEntity<Void> updateCouponPolicy(@PathVariable Long policyId, @Valid @RequestBody UpdateCouponPolicyDto updateCouponPolicyDto) {
-        couponPolicyService.updateCouponPolicy(policyId, updateCouponPolicyDto);
-        return ResponseEntity.ok().build();
-    }
+//    @PutMapping("/{policyId}")
+//    public ResponseEntity<Void> updateCouponPolicy(@PathVariable Long policyId, @Valid @RequestBody UpdateCouponPolicyDto updateCouponPolicyDto) {
+//        couponPolicyService.updateCouponPolicy(policyId, updateCouponPolicyDto);
+//        return ResponseEntity.ok().build();
+//    }
 
     @DeleteMapping("/{policyId}")
     public ResponseEntity<Void> deleteCouponPolicy(@PathVariable Long policyId) {

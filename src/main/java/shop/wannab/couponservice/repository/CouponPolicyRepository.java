@@ -7,6 +7,6 @@ import shop.wannab.couponservice.domain.enums.CouponType;
 import shop.wannab.couponservice.domain.enums.PolicyStatus;
 
 public interface CouponPolicyRepository extends JpaRepository<CouponPolicy,Long> {
-    CouponPolicy findByCouponType(CouponType couponType);
+    CouponPolicy findByCouponTypeAndPolicyStatus(CouponType couponType,PolicyStatus policyStatus);
     List<CouponPolicy> findByPolicyStatus(PolicyStatus status);
 }

@@ -1,6 +1,8 @@
 package shop.wannab.couponservice.domain.couponpolicy;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -31,9 +33,11 @@ public class CouponPolicy {
     private String couponPolicyName;
 
     @NotNull
+    @Enumerated(EnumType.STRING)
     private CouponType couponType;
 
     @NotNull
+    @Enumerated(EnumType.STRING)
     private DiscountType discountType;
 
     @NotNull
@@ -45,7 +49,6 @@ public class CouponPolicy {
     @NotNull
     private Integer minPurchase;
 
-    //프론트 엔드에 코드 추가 예정
     private Integer validDays;
 
     private LocalDate fixedStartDate;
@@ -53,5 +56,6 @@ public class CouponPolicy {
     private LocalDate fixedEndDate;
 
     @NotNull
+    @Enumerated(EnumType.STRING)
     private PolicyStatus policyStatus;
 }

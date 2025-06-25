@@ -6,5 +6,6 @@ import shop.wannab.couponservice.domain.couponpolicy.CouponPolicy;
 import shop.wannab.couponservice.domain.couponpolicy.PolicyTargetBook;
 
 public interface PolicyTargetBookRepository extends JpaRepository<PolicyTargetBook, Long> {
-    Optional<PolicyTargetBook> findByCouponPolicy(CouponPolicy couponPolicy);
+    Optional<PolicyTargetBook> findByBookId(Long bookId);
+    Optional<Long> findBookIdByCouponPolicy(CouponPolicy couponPolicy);
 }
