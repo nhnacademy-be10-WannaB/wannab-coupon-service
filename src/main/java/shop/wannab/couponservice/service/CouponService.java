@@ -1,14 +1,24 @@
 package shop.wannab.couponservice.service;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import shop.wannab.couponservice.client.BookServiceClient;
 import shop.wannab.couponservice.client.UserServiceClient;
 import shop.wannab.couponservice.domain.coupon.Coupon;
+import shop.wannab.couponservice.domain.coupon.dto.ApplicableCouponInfo;
+import shop.wannab.couponservice.domain.coupon.dto.ApplicableCouponsDto;
+import shop.wannab.couponservice.domain.coupon.dto.BookCouponDto;
 import shop.wannab.couponservice.domain.coupon.dto.CouponResponseToUserDto;
+import shop.wannab.couponservice.domain.coupon.dto.CouponUsageRequestDto;
+import shop.wannab.couponservice.domain.coupon.dto.OrderCouponDto;
+import shop.wannab.couponservice.domain.coupon.dto.OrderCouponsRequestDto;
 import shop.wannab.couponservice.domain.couponpolicy.CouponPolicy;
+import shop.wannab.couponservice.domain.enums.CouponStatus;
 import shop.wannab.couponservice.domain.enums.CouponType;
 import shop.wannab.couponservice.domain.enums.PolicyStatus;
 import shop.wannab.couponservice.repository.CouponPolicyRepository;
@@ -105,5 +115,83 @@ public class CouponService {
             respCouponDtoList.add(new CouponResponseToUserDto(coupon));
         }
         return respCouponDtoList;
+    }
+
+    @Transactional(readOnly = true)
+    public ApplicableCouponsDto getUserApplicableCoupons(
+            Long userId,
+            OrderCouponsRequestDto requestDto) {
+
+        Map<Long, Long> bookIdToCategoryIdMap = new HashMap<>();
+        List<Long> bookIds = requestDto.getBookIds();
+        List<Long> categoryIds = bookServiceClient.getCategoryIds(bookIds);
+        if (bookIds != null && categoryIds != null && bookIds.size() == categoryIds.size()) {
+            for (int i = 0; i < bookIds.size(); i++) {
+                bookIdToCategoryIdMap.put(bookIds.get(i), categoryIds.get(i));
+            }
+        }
+
+        List<ApplicableCouponInfo> applicableCouponsInfo =
+                couponRepositoryImpl.findApplicableCouponsForOrder(userId, bookIdToCategoryIdMap);
+
+        Map<Long, List<BookCouponDto>> itemCoupons = new HashMap<>();
+        List<OrderCouponDto> orderCoupons = new ArrayList<>();
+
+        for (ApplicableCouponInfo info : applicableCouponsInfo) {
+            Coupon coupon = info.coupon();
+            CouponPolicy policy = coupon.getCouponPolicy();
+            Long targetBookId = info.targetBookId();
+
+            if (targetBookId != null) {
+                BookCouponDto bookCouponDto = new BookCouponDto(
+                        coupon.getCouponId(),
+                        policy.getCouponPolicyName(),
+                        policy.getDiscountValue(),
+                        policy.getDiscountType()
+                );
+                itemCoupons.computeIfAbsent(targetBookId, k -> new ArrayList<>()).add(bookCouponDto);
+
+            } else {
+                OrderCouponDto orderCouponDto = new OrderCouponDto(
+                        coupon.getCouponId(),
+                        policy.getCouponPolicyName(),
+                        policy.getDiscountValue(),
+                        policy.getDiscountType()
+                );
+                orderCoupons.add(orderCouponDto);
+            }
+        }
+
+        return new ApplicableCouponsDto(itemCoupons, orderCoupons);
+    }
+
+    @Transactional
+    public void processUsedCoupons(Long userId, CouponUsageRequestDto requestDto) {
+
+        List<CouponUsageRequestDto.UsedCouponInfo> usedCoupons = requestDto.getUsedCoupons();
+
+        for (CouponUsageRequestDto.UsedCouponInfo usedCouponInfo : usedCoupons) {
+            Coupon coupon = couponRepository.findById(usedCouponInfo.getCouponId())
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 쿠폰입니다. ID: " + usedCouponInfo.getCouponId()));
+
+
+            if (!coupon.getUserId().equals(userId)) {
+                throw new IllegalStateException("쿠폰의 소유자가 일치하지 않습니다.");
+            }
+
+            if (coupon.getStatus() != CouponStatus.NOT_USED) {
+                throw new IllegalStateException("이미 사용되었거나 만료된 쿠폰입니다.");
+            }
+
+
+            coupon.setStatus(CouponStatus.USED);
+            coupon.setUsedAt(LocalDate.now());
+            coupon.setOrderId(requestDto.getOrderId());
+
+
+            if (usedCouponInfo.getBookId() != null) {
+                coupon.setOrderBookId(usedCouponInfo.getBookId());
+            }
+        }
     }
 }

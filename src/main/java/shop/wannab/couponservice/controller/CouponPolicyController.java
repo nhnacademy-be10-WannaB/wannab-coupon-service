@@ -38,23 +38,9 @@ public class CouponPolicyController {
         return ResponseEntity.ok(policies);
     }
 
-    //쿠폰 정책 상세 조회
-//    @GetMapping("/{policyId}")
-//    public ResponseEntity<CouponPolicyDetailResponseDto> getCouponPolicyDetail(@PathVariable Long policyId) {
-//        CouponPolicyDetailResponseDto respDto = couponPolicyService.getCouponPolicyById(policyId);
-//        return ResponseEntity.ok(respDto);
-//    }
-
-//    @PutMapping("/{policyId}")
-//    public ResponseEntity<Void> updateCouponPolicy(@PathVariable Long policyId, @Valid @RequestBody UpdateCouponPolicyDto updateCouponPolicyDto) {
-//        couponPolicyService.updateCouponPolicy(policyId, updateCouponPolicyDto);
-//        return ResponseEntity.ok().build();
-//    }
-
     @DeleteMapping("/{policyId}")
     public ResponseEntity<Void> deleteCouponPolicy(@PathVariable Long policyId) {
         couponPolicyService.deleteCouponPolicyById(policyId);
         return ResponseEntity.ok().build();
     }
-
 }
