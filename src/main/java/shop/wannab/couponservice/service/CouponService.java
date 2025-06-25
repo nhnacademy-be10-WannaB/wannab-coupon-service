@@ -1,10 +1,13 @@
 package shop.wannab.couponservice.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import shop.wannab.couponservice.client.BookServiceClient;
 import shop.wannab.couponservice.client.UserServiceClient;
 import shop.wannab.couponservice.domain.coupon.Coupon;
+import shop.wannab.couponservice.domain.coupon.dto.CouponResponseToUserDto;
 import shop.wannab.couponservice.domain.couponpolicy.CouponPolicy;
 import shop.wannab.couponservice.domain.enums.CouponType;
 import shop.wannab.couponservice.domain.enums.PolicyStatus;
@@ -18,16 +21,19 @@ public class CouponService {
     private final CouponPolicyRepository couponPolicyRepository;
     private final CouponRepositoryImpl couponRepositoryImpl;
     private final UserServiceClient userServiceClient;
+    private final BookServiceClient bookServiceClient;
     public CouponService(CouponRepository couponRepository,
                          CouponPolicyRepository couponPolicyRepository,
                          CouponRepositoryImpl couponRepositoryImpl,
-                         UserServiceClient userServiceClient
+                         UserServiceClient userServiceClient,
+                         BookServiceClient bookServiceClient
                          ) {
 
         this.couponRepository = couponRepository;
         this.couponPolicyRepository = couponPolicyRepository;
         this.couponRepositoryImpl = couponRepositoryImpl;
         this.userServiceClient = userServiceClient;
+        this.bookServiceClient = bookServiceClient;
     }
 
     @Transactional
@@ -89,5 +95,15 @@ public class CouponService {
     private void saveNewCoupon(Long userId, CouponPolicy couponPolicy, String prefix) {
         Coupon createdCoupon = Coupon.createNewCoupon(userId, couponPolicy, prefix);
         couponRepository.save(createdCoupon);
+    }
+
+    @Transactional(readOnly = true)
+    public List<CouponResponseToUserDto> getUserCoupons(Long userId) {
+        List<Coupon> coupons = couponRepository.findByUserId(userId);
+        List<CouponResponseToUserDto> respCouponDtoList = new ArrayList<>();
+        for (Coupon coupon : coupons) {
+            respCouponDtoList.add(new CouponResponseToUserDto(coupon));
+        }
+        return respCouponDtoList;
     }
 }
