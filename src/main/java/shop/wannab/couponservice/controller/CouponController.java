@@ -13,6 +13,8 @@ import shop.wannab.couponservice.domain.coupon.dto.ApplicableCouponsDto;
 import shop.wannab.couponservice.domain.coupon.dto.CouponResponseToUserDto;
 import shop.wannab.couponservice.domain.coupon.dto.CouponUsageRequestDto;
 import shop.wannab.couponservice.domain.coupon.dto.OrderCouponsRequestDto;
+import shop.wannab.couponservice.domain.coupon.dto.TryApplyCouponsRequestDto;
+import shop.wannab.couponservice.domain.coupon.dto.TryApplyCouponsResponseDto;
 import shop.wannab.couponservice.domain.couponpolicy.dto.IssuableCouponPolicyDto;
 import shop.wannab.couponservice.service.CouponPolicyService;
 import shop.wannab.couponservice.service.CouponService;
@@ -66,6 +68,14 @@ public class CouponController {
             @RequestHeader("X-User-Id") Long userId,
             @RequestBody OrderCouponsRequestDto orderCouponsRequestDtoList){
         return ResponseEntity.ok(couponService.getUserApplicableCoupons(userId, orderCouponsRequestDtoList));
+    }
+
+    @PostMapping("/order/apply")
+    public ResponseEntity<List<TryApplyCouponsResponseDto>> getApplyCoupons(
+            @RequestHeader("X-User-Id") Long userId,
+            @RequestBody TryApplyCouponsRequestDto tryApplyCouponsRequestDtoMap
+            ){
+        return ResponseEntity.ok(couponService.applyCoupons(userId, tryApplyCouponsRequestDtoMap));
     }
 
     @PostMapping("/order/success")

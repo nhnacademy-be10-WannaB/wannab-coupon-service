@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import shop.wannab.couponservice.client.BookServiceClient;
@@ -17,6 +18,8 @@ import shop.wannab.couponservice.domain.coupon.dto.CouponResponseToUserDto;
 import shop.wannab.couponservice.domain.coupon.dto.CouponUsageRequestDto;
 import shop.wannab.couponservice.domain.coupon.dto.OrderCouponDto;
 import shop.wannab.couponservice.domain.coupon.dto.OrderCouponsRequestDto;
+import shop.wannab.couponservice.domain.coupon.dto.TryApplyCouponsRequestDto;
+import shop.wannab.couponservice.domain.coupon.dto.TryApplyCouponsResponseDto;
 import shop.wannab.couponservice.domain.couponpolicy.CouponPolicy;
 import shop.wannab.couponservice.domain.enums.CouponStatus;
 import shop.wannab.couponservice.domain.enums.CouponType;
@@ -193,5 +196,26 @@ public class CouponService {
                 coupon.setOrderBookId(usedCouponInfo.getBookId());
             }
         }
+    }
+
+    @Transactional(readOnly = true)
+    public List<TryApplyCouponsResponseDto> applyCoupons(Long userId, TryApplyCouponsRequestDto requestDto) {
+        List<TryApplyCouponsResponseDto> respCouponDtoList = new ArrayList<>();
+        Map<Long, Long> couponIdToBookIdMap = requestDto.getCouponAndBookIds();
+        List<Long> requestedCouponIds = new ArrayList<>(couponIdToBookIdMap.keySet());
+        List<Coupon> coupons = couponRepository.findAllById(requestedCouponIds);
+
+        Map<Long, Coupon> couponMap = coupons.stream()
+                .collect(Collectors.toMap(Coupon::getCouponId, coupon -> coupon));
+        for(Map.Entry<Long, Long> entry : couponIdToBookIdMap.entrySet()) {
+            Coupon coupon = couponMap.get(entry.getKey());
+            Long targetBookId = entry.getValue();
+            respCouponDtoList.add(new TryApplyCouponsResponseDto(
+                    entry.getKey(),
+                    coupon.getCouponPolicy().getDiscountValue(),
+                    coupon.getCouponPolicy().getDiscountType(),
+                    targetBookId));
+        }
+        return respCouponDtoList;
     }
 }
