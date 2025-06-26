@@ -1,12 +1,13 @@
 package shop.wannab.couponservice.repository;
 
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import shop.wannab.couponservice.domain.couponpolicy.CouponPolicy;
 import shop.wannab.couponservice.domain.enums.CouponType;
 import shop.wannab.couponservice.domain.enums.PolicyStatus;
 
 public interface CouponPolicyRepository extends JpaRepository<CouponPolicy,Long> {
-    CouponPolicy findByCouponTypeAndPolicyStatus(CouponType couponType,PolicyStatus policyStatus);
+    Optional<CouponPolicy> findByCouponTypeAndPolicyStatus(CouponType couponType, PolicyStatus policyStatus);
     List<CouponPolicy> findByPolicyStatus(PolicyStatus status);
 }

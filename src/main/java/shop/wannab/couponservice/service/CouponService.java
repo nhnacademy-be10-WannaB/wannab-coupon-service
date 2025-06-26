@@ -48,7 +48,7 @@ public class CouponService {
 
     @Transactional
     public void issueWelcomeCouponForNewUser(Long userId) {
-        CouponPolicy welcomePolicy = couponPolicyRepository.findByCouponTypeAndPolicyStatus(CouponType.WELCOME, PolicyStatus.ACTIVE);
+        CouponPolicy welcomePolicy = couponPolicyRepository.findByCouponTypeAndPolicyStatus(CouponType.WELCOME, PolicyStatus.ACTIVE).orElse(null);
 
         if (welcomePolicy == null) {
             throw new IllegalArgumentException("웰컴 쿠폰이 없습니다.");
@@ -81,7 +81,7 @@ public class CouponService {
     public void issueBirthdayCoupon(int month) {
         System.out.println("생일 쿠폰 발급 로직 시작 (월: " + month + ")");
 
-        CouponPolicy birthdayPolicy = couponPolicyRepository.findByCouponTypeAndPolicyStatus(CouponType.BIRTHDAY,PolicyStatus.ACTIVE);
+        CouponPolicy birthdayPolicy = couponPolicyRepository.findByCouponTypeAndPolicyStatus(CouponType.BIRTHDAY,PolicyStatus.ACTIVE).orElse(null);
         if (birthdayPolicy == null) {
             throw new IllegalArgumentException("해당 쿠폰이 없습니다.");
         }
