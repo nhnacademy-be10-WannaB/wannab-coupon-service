@@ -1,4 +1,4 @@
-package shop.wannab.couponservice.domain;
+package shop.wannab.couponservice.domain.couponpolicy;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -28,6 +28,6 @@ public class PolicyTargetCategory {
     private Long categoryId;
 
     @OneToOne
-    @JoinColumn(nullable = false)
+    @JoinColumn(name = "coupon_policy_id",nullable = false)
     private CouponPolicy couponPolicy;
 }

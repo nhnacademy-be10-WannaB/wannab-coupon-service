@@ -1,8 +1,0 @@
-server:
-  port: 8081
-
-spring:
-  application:
-    name: coupon-service
-  config:
-    import: "optional:configserver:http://config-server:10394/"

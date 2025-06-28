@@ -1,6 +1,8 @@
-package shop.wannab.couponservice.domain;
+package shop.wannab.couponservice.domain.coupon;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -14,6 +16,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import shop.wannab.couponservice.domain.couponpolicy.CouponPolicy;
 import shop.wannab.couponservice.domain.enums.CouponStatus;
 
 @Entity
@@ -31,7 +34,7 @@ public class Coupon {
     private Long userId;
 
     @ManyToOne
-    @JoinColumn(nullable = false)
+    @JoinColumn(name = "coupon_policy_id",nullable = false)
     private CouponPolicy couponPolicy;
 
     @NotNull
@@ -46,10 +49,10 @@ public class Coupon {
     @NotNull
     private LocalDate endDate;
 
-
     private LocalDate usedAt;
 
     @NotNull
+    @Enumerated(EnumType.STRING)
     private CouponStatus status;
 
     private Long orderId;
@@ -60,15 +63,21 @@ public class Coupon {
         String couponCode = String.format("%s%s-%s",prefix,LocalDate.now().toString().replace("-",""),
                 UUID.randomUUID().toString().substring(0,20).replace("-","").toUpperCase());
 
-        return Coupon.builder()
+        Coupon coupon = Coupon.builder()
                 .userId(userId)
                 .couponPolicy(couponPolicy)
                 .couponCode(couponCode)
                 .issuedAt(LocalDate.now())
                 .startDate(LocalDate.now())
-                .endDate(couponPolicy.getFixedEndDate())
                 .status(CouponStatus.NOT_USED)
                 .build();
 
+        if(couponPolicy.getValidDays() > 0){
+            coupon.setEndDate(LocalDate.now().plusDays(couponPolicy.getValidDays()));
+        }
+        else{
+            coupon.setEndDate(couponPolicy.getFixedEndDate());
+        }
+        return coupon;
     }
 }

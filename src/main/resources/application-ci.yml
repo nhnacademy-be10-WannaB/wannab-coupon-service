@@ -1,3 +1,7 @@
+server:
+  port: 10388
+  shutdown: graceful
+
 spring:
   application:
     name: coupon-service
@@ -9,9 +13,7 @@ spring:
     config:
       enabled: false
 
-server:
-  shutdown: graceful
-
 eureka:
   client:
     enabled: false
+
