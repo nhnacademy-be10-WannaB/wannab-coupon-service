@@ -5,7 +5,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-@FeignClient(name="user-service",url="{feign.client.user-service.url}")
+@FeignClient(name="user-service", contextId = "userServiceClient")
 public interface UserServiceClient
 {
     @GetMapping("/api/users/birthdays")

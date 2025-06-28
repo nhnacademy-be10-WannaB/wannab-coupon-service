@@ -1,5 +1,5 @@
 server:
-  port: 8081
+  port: 10388
   shutdown: graceful
 
 spring:
@@ -17,12 +17,3 @@ eureka:
   client:
     enabled: false
 
----
-
-spring:
-  config:
-    activate:
-      on-profile: develop
-  
-  
-  import: "optional:configserver:http://config-server:10394/"

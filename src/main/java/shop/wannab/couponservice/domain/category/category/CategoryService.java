@@ -1,12 +1,10 @@
 package shop.wannab.couponservice.domain.category.category;
 
-import jakarta.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.Getter;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import shop.wannab.couponservice.client.BookServiceClient;
 import shop.wannab.couponservice.domain.category.category.dto.CategoryHierarchyDto;
@@ -21,8 +19,8 @@ public class CategoryService {
         this.bookServiceClient = bookServiceClient;
     }
 
-    @PostConstruct
-    @Scheduled(fixedDelay = 3600000) // 1시간(3600000ms)마다 다시 실행
+
+
     public void init(){
         List<CategoryHierarchyDto> hierarchy = bookServiceClient.getCategoryHierarchy();
         this.categoryMap = new HashMap<>();
