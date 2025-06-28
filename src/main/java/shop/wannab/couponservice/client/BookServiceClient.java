@@ -20,4 +20,7 @@ public interface BookServiceClient {
 
     @GetMapping("/api/categories/hierarchy")
     List<CategoryHierarchyDto> getCategoryHierarchy();
+
+    @PostMapping("/api/categories")
+    List<Long> getCategoryIds(@RequestBody List<Long> bookIds);
 }

@@ -38,7 +38,7 @@ public class CouponResponseToUserDto {
     private String buildPeriodString(LocalDate endDate){
         LocalDate today = LocalDate.now();
         if (today.isAfter(endDate)) {
-            return "기간 만료";
+            return "기간 만료(" + endDate + ")까지";
         }
         String formattedEndDate = endDate.format(DATE_FORMATTER);
         return String.format("%s 까지",formattedEndDate);

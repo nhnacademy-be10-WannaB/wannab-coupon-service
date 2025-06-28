@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import shop.wannab.couponservice.client.BookServiceClient;
 import shop.wannab.couponservice.domain.category.category.CategoryService;
 import shop.wannab.couponservice.domain.couponpolicy.CouponPolicy;
 import shop.wannab.couponservice.domain.couponpolicy.PolicyTargetBook;
@@ -30,19 +31,22 @@ public class CouponPolicyService {
     private final PolicyTargetCategoryRepository policyTargetCategoryRepository;
     private final CategoryService categoryService;
     private final CouponRepositoryImpl couponRepositoryImpl;
+    private final BookServiceClient bookServiceClient;
 
     public CouponPolicyService(
             CouponPolicyRepository couponPolicyRepository,
             PolicyTargetBookRepository policyTargetBookRepository,
             PolicyTargetCategoryRepository policyTargetCategoryRepository,
             CouponRepositoryImpl couponRepositoryImpl,
-            CategoryService categoryService
+            CategoryService categoryService,
+            BookServiceClient bookServiceClient
     ) {
         this.couponPolicyRepository = couponPolicyRepository;
         this.policyTargetBookRepository = policyTargetBookRepository;
         this.policyTargetCategoryRepository = policyTargetCategoryRepository;
         this.categoryService = categoryService;
         this.couponRepositoryImpl = couponRepositoryImpl;
+        this.bookServiceClient = bookServiceClient;
     }
 
     @Transactional
@@ -58,25 +62,49 @@ public class CouponPolicyService {
                 .fixedEndDate(request.getEndDate())
                 .policyStatus(PolicyStatus.ACTIVE).build();
 
+        CouponType newCouponType;
+
+
         if (request.getCouponType().equals("NORMAL")) {
             if (request.isBirthday()) {
-                couponPolicy.setCouponType(CouponType.BIRTHDAY);
+                newCouponType = CouponType.BIRTHDAY;
             } else if (request.isWelcome()) {
-                couponPolicy.setCouponType(CouponType.WELCOME);
+                newCouponType = CouponType.WELCOME;
             } else {
-                couponPolicy.setCouponType(CouponType.CUSTOM);
+                newCouponType = CouponType.CUSTOM;
             }
-            couponPolicyRepository.save(couponPolicy);
+            couponPolicy.setCouponType(newCouponType);
+
+            if (couponPolicyRepository.findByCouponTypeAndPolicyStatus(newCouponType, PolicyStatus.ACTIVE).isPresent()) {
+                throw new IllegalArgumentException(newCouponType.name() + " 타입의 쿠폰 정책은 이미 존재합니다. 단 하나의 정책만 허용됩니다.");
+            }
+
         } else if (request.getCouponType().equals("BOOK")) {
-            couponPolicy.setCouponType(CouponType.BOOK);
-            couponPolicyRepository.save(couponPolicy);
+            newCouponType = CouponType.BOOK;
+            couponPolicy.setCouponType(newCouponType);
+
             long bookId = request.getTargetBookId();
-            createPolicyTargetBook(bookId, couponPolicy);
+            if (bookId <= 0) {
+                throw new IllegalArgumentException("BOOK 타입 쿠폰 정책 생성 시 유효한 도서 ID가 필요합니다.");
+            }
+
+            if (policyTargetBookRepository.findByBookId(bookId).isPresent()) {
+                throw new IllegalArgumentException("도서 ID " + bookId + "에 대한 BOOK 타입 쿠폰 정책은 이미 존재합니다. 단 하나의 정책만 허용됩니다.");
+            }
+
         } else {
-            couponPolicy.setCouponType(CouponType.CATEGORY);
-            couponPolicyRepository.save(couponPolicy);
+            newCouponType = CouponType.CATEGORY;
+            couponPolicy.setCouponType(newCouponType);
+
             long categoryId = request.getTargetCategoryId();
-            createPolicyTargetCategory(categoryId, couponPolicy);
+            if (categoryId <= 0) {
+                throw new IllegalArgumentException("CATEGORY 타입 쿠폰 정책 생성 시 유효한 카테고리 ID가 필요합니다.");
+            }
+
+//            if (couponPolicyRepository.findByCouponTypeAndTargetCategoryIdAndPolicyStatus(
+//                    CouponType.CATEGORY, categoryId, PolicyStatus.ACTIVE).isPresent()) {
+//                throw new IllegalArgumentException("카테고리 ID " + categoryId + "에 대한 CATEGORY 타입 쿠폰 정책은 이미 존재합니다. 단 하나의 정책만 허용됩니다.");
+//            }
         }
 
     }
@@ -124,28 +152,28 @@ public class CouponPolicyService {
             }
         }
 
-//        Map<Long, String> bookNamesMap = bookServiceClient.getBookNames(bookIdsToFetch);
-//        Map<Long, String> categoryNamesMap = bookServiceClient.getCategoryNames(categoryIdsToFetch);
+        Map<Long, String> bookNamesMap = bookServiceClient.getBookNames(bookIdsToFetch);
+        Map<Long, String> categoryNamesMap = bookServiceClient.getCategoryNames(categoryIdsToFetch);
 
         List<CouponPolicyResponseDto> responseDtos = new ArrayList<>();
-//        for (CouponPolicy policy : activePolicies) {
-//            String bookName = null;
-//            String categoryName = null;
-//
-//            if (policy.getCouponType() == CouponType.BOOK) {
-//                Long bookId = policyToBookIdMap.get(policy.getCouponPolicyId());
-//                if (bookId != null) {
-//                    bookName = bookNamesMap.getOrDefault(bookId, "알 수 없는 책");
-//                }
-//            } else if (policy.getCouponType() == CouponType.CATEGORY) {
-//                Long categoryId = policyToCategoryIdMap.get(policy.getCouponPolicyId());
-//                if (categoryId != null) {
-//                    categoryName = categoryNamesMap.getOrDefault(categoryId, "알 수 없는 카테고리");
-//                }
-//            }
-//
-//            responseDtos.add(CouponPolicyResponseDto.from(policy, bookName, categoryName));
-//        }
+        for (CouponPolicy policy : activePolicies) {
+            String bookName = null;
+            String categoryName = null;
+
+            if (policy.getCouponType() == CouponType.BOOK) {
+                Long bookId = policyToBookIdMap.get(policy.getCouponPolicyId());
+                if (bookId != null) {
+                    bookName = bookNamesMap.getOrDefault(bookId, "알 수 없는 책");
+                }
+            } else if (policy.getCouponType() == CouponType.CATEGORY) {
+                Long categoryId = policyToCategoryIdMap.get(policy.getCouponPolicyId());
+                if (categoryId != null) {
+                    categoryName = categoryNamesMap.getOrDefault(categoryId, "알 수 없는 카테고리");
+                }
+            }
+
+            responseDtos.add(CouponPolicyResponseDto.from(policy, bookName, categoryName));
+        }
 
         return responseDtos;
     }

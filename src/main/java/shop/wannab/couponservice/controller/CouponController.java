@@ -4,11 +4,17 @@ import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import shop.wannab.couponservice.domain.coupon.dto.ApplicableCouponsDto;
 import shop.wannab.couponservice.domain.coupon.dto.CouponResponseToUserDto;
+import shop.wannab.couponservice.domain.coupon.dto.CouponUsageRequestDto;
+import shop.wannab.couponservice.domain.coupon.dto.OrderCouponsRequestDto;
+import shop.wannab.couponservice.domain.coupon.dto.TryApplyCouponsRequestDto;
+import shop.wannab.couponservice.domain.coupon.dto.TryApplyCouponsResponseDto;
 import shop.wannab.couponservice.domain.couponpolicy.dto.IssuableCouponPolicyDto;
 import shop.wannab.couponservice.service.CouponPolicyService;
 import shop.wannab.couponservice.service.CouponService;
@@ -55,5 +61,29 @@ public class CouponController {
     public ResponseEntity<List<CouponResponseToUserDto>> getUserCoupons(
             @RequestHeader("X-User-Id") Long userId){
         return ResponseEntity.ok(couponService.getUserCoupons(userId));
+    }
+
+    @PostMapping("/order")
+    public ResponseEntity<ApplicableCouponsDto> getApplicableCoupons(
+            @RequestHeader("X-User-Id") Long userId,
+            @RequestBody OrderCouponsRequestDto orderCouponsRequestDtoList){
+        return ResponseEntity.ok(couponService.getUserApplicableCoupons(userId, orderCouponsRequestDtoList));
+    }
+
+    @PostMapping("/order/apply")
+    public ResponseEntity<List<TryApplyCouponsResponseDto>> getApplyCoupons(
+            @RequestHeader("X-User-Id") Long userId,
+            @RequestBody TryApplyCouponsRequestDto tryApplyCouponsRequestDtoMap
+            ){
+        return ResponseEntity.ok(couponService.applyCoupons(userId, tryApplyCouponsRequestDtoMap));
+    }
+
+    @PostMapping("/order/success")
+    public ResponseEntity<Void> processUsedCoupons(
+            @RequestHeader("X-User-Id") Long userId,
+            @RequestBody CouponUsageRequestDto requestDto) {
+
+        couponService.processUsedCoupons(userId, requestDto);
+        return ResponseEntity.ok().build();
     }
 }
