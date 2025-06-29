@@ -1,7 +1,6 @@
 package shop.wannab.couponservice.domain.category.category;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.Getter;
@@ -19,13 +18,6 @@ public class CategoryService {
         this.bookServiceClient = bookServiceClient;
     }
 
-
-
-    public void init(){
-        List<CategoryHierarchyDto> hierarchy = bookServiceClient.getCategoryHierarchy();
-        this.categoryMap = new HashMap<>();
-        makeHierarchy(hierarchy,null);
-    }
 
     private void makeHierarchy(List<CategoryHierarchyDto> hierarchy, CategoryNode parent) {
         if(hierarchy == null || hierarchy.isEmpty()){
