@@ -78,10 +78,10 @@ public class CouponPolicyService {
             if (couponPolicyRepository.findByCouponTypeAndPolicyStatus(newCouponType, PolicyStatus.ACTIVE).isPresent()) {
                 throw new IllegalArgumentException(newCouponType.name() + " 타입의 쿠폰 정책은 이미 존재합니다. 단 하나의 정책만 허용됩니다.");
             }
+            couponPolicyRepository.save(couponPolicy);
 
         } else if (request.getCouponType().equals("BOOK")) {
             newCouponType = CouponType.BOOK;
-            couponPolicy.setCouponType(newCouponType);
 
             long bookId = request.getTargetBookId();
             if (bookId <= 0) {
@@ -92,19 +92,25 @@ public class CouponPolicyService {
                 throw new IllegalArgumentException("도서 ID " + bookId + "에 대한 BOOK 타입 쿠폰 정책은 이미 존재합니다. 단 하나의 정책만 허용됩니다.");
             }
 
+            couponPolicy.setCouponType(newCouponType);
+            couponPolicyRepository.save(couponPolicy);
+            createPolicyTargetBook(bookId, couponPolicy);
+
         } else {
             newCouponType = CouponType.CATEGORY;
-            couponPolicy.setCouponType(newCouponType);
 
             long categoryId = request.getTargetCategoryId();
             if (categoryId <= 0) {
                 throw new IllegalArgumentException("CATEGORY 타입 쿠폰 정책 생성 시 유효한 카테고리 ID가 필요합니다.");
             }
 
-//            if (couponPolicyRepository.findByCouponTypeAndTargetCategoryIdAndPolicyStatus(
-//                    CouponType.CATEGORY, categoryId, PolicyStatus.ACTIVE).isPresent()) {
-//                throw new IllegalArgumentException("카테고리 ID " + categoryId + "에 대한 CATEGORY 타입 쿠폰 정책은 이미 존재합니다. 단 하나의 정책만 허용됩니다.");
-//            }
+            if (policyTargetCategoryRepository.findByCategoryId(categoryId).isPresent()) {
+                throw new IllegalArgumentException("카테고리 ID " + categoryId + "에 대한 CATEGORY 타입 쿠폰 정책은 이미 존재합니다. 단 하나의 정책만 허용됩니다.");
+            }
+
+            couponPolicy.setCouponType(newCouponType);
+            couponPolicyRepository.save(couponPolicy);
+            createPolicyTargetCategory(categoryId, couponPolicy);
         }
 
     }
@@ -189,19 +195,17 @@ public class CouponPolicyService {
 
 
     @Transactional(readOnly = true)
-    public List<IssuableCouponPolicyDto> findIssuablePoliciesForBook(Long bookId, Long categoryId) {
+    public List<IssuableCouponPolicyDto> findIssuablePoliciesForBook(Long bookId) {
         List<IssuableCouponPolicyDto> issuableCouponPolicyDtoList = new ArrayList<>();
         PolicyTargetBook policyTargetBook = policyTargetBookRepository.findByBookId(bookId).orElse(null);
-        PolicyTargetCategory policyTargetCategory = policyTargetCategoryRepository.findByCategoryId(categoryId)
-                .orElse(null);
-
+        Long categoryId = bookServiceClient.getCategoryId(bookId);
+        PolicyTargetCategory policyTargetCategory = policyTargetCategoryRepository.findById(categoryId).orElse(null);
         if (policyTargetBook != null) {
             if (policyTargetBook.getCouponPolicy().getFixedEndDate().isAfter(LocalDate.now())) {
                 issuableCouponPolicyDtoList.add(new IssuableCouponPolicyDto(policyTargetBook.getCouponPolicy()));
             }
         }
         if (policyTargetCategory != null) {
-            //본인 포함 조상 다 가져옴 컴퓨터,프로그래밍 언어
             List<Long> ancestorCategoryIds = categoryService.getAncestorCategoryIds(categoryId);
             List<CouponPolicy> couponPolicies = couponRepositoryImpl.findActiveCouponPolicies(ancestorCategoryIds);
             for (CouponPolicy couponPolicy : couponPolicies) {
@@ -210,22 +214,4 @@ public class CouponPolicyService {
         }
         return issuableCouponPolicyDtoList;
     }
-
-    //    @Transactional
-//    public void updateCouponPolicy(long couponPolicyId, UpdateCouponPolicyDto request) {
-//        CouponPolicy couponPolicy = couponPolicyRepository.findById(couponPolicyId).orElse(null);
-//
-//        couponPolicy.setMinPurchase(request.getMinPurchase());
-//        couponPolicy.setDiscountValue(request.getDiscountValue());
-//        couponPolicy.setMaxDiscount(request.getMaxDiscount());
-//
-//        if(request.getValidityType().equals("FIXED")){
-//            couponPolicy.setValidDays(request.getValidForDays());
-//        }
-//        else{
-//            couponPolicy.setFixedEndDate(request.getEndDate());
-//        }
-//
-//        couponPolicyRepository.save(couponPolicy);
-//    }
 }
