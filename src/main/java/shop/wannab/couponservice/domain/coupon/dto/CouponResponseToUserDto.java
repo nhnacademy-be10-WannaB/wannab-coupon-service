@@ -15,15 +15,18 @@ public class CouponResponseToUserDto {
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy.MM.dd");
     private String couponName;
     private String discountInfo;
-    private String purchaseTerm;
     private String period;
+    private String usageStatus;
+    private String purchaseTerm;
 
     public CouponResponseToUserDto(Coupon coupon) {
         CouponPolicy policy = coupon.getCouponPolicy();
         this.couponName = policy.getCouponPolicyName();
         this.discountInfo = buildDiscountInfo(policy) + " 할인";
-        this.purchaseTerm = buildPurchaseTerm(policy);
         this.period = buildPeriodString(coupon.getEndDate());
+        this.usageStatus = generateUsageStatus(coupon.getUsedAt());
+        this.purchaseTerm = buildPurchaseTerm(policy);
+
     }
 
     private String buildDiscountInfo(CouponPolicy policy) {
@@ -67,4 +70,12 @@ public class CouponResponseToUserDto {
         return termBuilder.toString();
     }
 
+    private String generateUsageStatus(LocalDate usedAt) {
+        if (usedAt == null) {
+            return "사용 가능";
+        } else {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd");
+            return String.format("사용 완료 (%s)", usedAt.format(formatter));
+        }
+    }
 }
