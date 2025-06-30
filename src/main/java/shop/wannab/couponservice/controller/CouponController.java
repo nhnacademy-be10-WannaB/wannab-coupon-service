@@ -51,9 +51,8 @@ public class CouponController {
 
     @GetMapping("/issuable-coupons")
     public ResponseEntity<List<IssuableCouponPolicyDto>> getIssuableCoupons(
-            @RequestParam Long bookId,
-            @RequestParam Long categoryId){
-        List<IssuableCouponPolicyDto> couponList = couponPolicyService.findIssuablePoliciesForBook(bookId,categoryId);
+            @RequestParam Long bookId){
+        List<IssuableCouponPolicyDto> couponList = couponPolicyService.findIssuablePoliciesForBook(bookId);
         return ResponseEntity.ok(couponList);
     }
 
