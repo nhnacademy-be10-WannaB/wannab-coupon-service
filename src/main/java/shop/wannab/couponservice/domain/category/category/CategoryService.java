@@ -1,9 +1,11 @@
 package shop.wannab.couponservice.domain.category.category;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.Getter;
+import lombok.Setter;
 import org.springframework.stereotype.Service;
 import shop.wannab.couponservice.client.BookServiceClient;
 import shop.wannab.couponservice.domain.category.category.dto.CategoryHierarchyDto;
@@ -12,32 +14,20 @@ import shop.wannab.couponservice.domain.category.category.dto.CategoryHierarchyD
 public class CategoryService {
     private final BookServiceClient bookServiceClient;
 
-    private Map<Long,CategoryNode> categoryMap;
-
     public CategoryService(BookServiceClient bookServiceClient) {
         this.bookServiceClient = bookServiceClient;
     }
 
-
-    private void makeHierarchy(List<CategoryHierarchyDto> hierarchy, CategoryNode parent) {
-        if(hierarchy == null || hierarchy.isEmpty()){
-            return;
-        }
-        for(CategoryHierarchyDto dto : hierarchy){
-            CategoryNode currentNode = new CategoryNode(dto.getId(), dto.getName());
-            if (parent != null) {
-                currentNode.setParent(parent);
-            }
-            categoryMap.put(dto.getId(), currentNode);
-
-            // 자식 노드들에 대해 재귀적으로 호출
-            makeHierarchy(dto.getChildren(), currentNode);
-        }
+    public List<CategoryHierarchyDto> getCategoryHierarchy() {
+        return bookServiceClient.getCategoryHierarchy();
     }
 
-    public List<Long> getAncestorCategoryIds(Long categoryId) {
+    public List<Long> getAncestorCategoryIds(Long targetCategoryId) {
+        List<CategoryHierarchyDto> wholeHierarchy = bookServiceClient.getCategoryHierarchy();
+        Map<Long, CategoryNode> tempCategoryMap = new HashMap<>();
+        buildTemporaryMap(wholeHierarchy, null, tempCategoryMap);
         List<Long> ancestorIds = new ArrayList<>();
-        CategoryNode node = categoryMap.get(categoryId);
+        CategoryNode node = tempCategoryMap.get(targetCategoryId);
 
         while (node != null) {
             ancestorIds.add(node.getId());
@@ -47,7 +37,24 @@ public class CategoryService {
         return ancestorIds;
     }
 
+    private void buildTemporaryMap(List<CategoryHierarchyDto> hierarchy, CategoryNode parent,
+                                   Map<Long, CategoryNode> map) {
+        if (hierarchy == null || hierarchy.isEmpty()) {
+            return;
+        }
+        for (CategoryHierarchyDto dto : hierarchy) {
+            CategoryNode currentNode = new CategoryNode(dto.getId(), dto.getName());
+            if (parent != null) {
+                currentNode.setParent(parent);
+            }
+            map.put(dto.getId(), currentNode);
+
+            buildTemporaryMap(dto.getChildren(), currentNode, map);
+        }
+    }
+
     @Getter
+    @Setter
     private static class CategoryNode {
         private Long id;
         private String name;
@@ -56,10 +63,6 @@ public class CategoryService {
         public CategoryNode(Long id, String name) {
             this.id = id;
             this.name = name;
-        }
-
-        public void setParent(CategoryNode parent) {
-            this.parent = parent;
         }
     }
 }
