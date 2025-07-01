@@ -1,9 +1,9 @@
 package shop.wannab.couponservice.coupon.repository.impl;
 
-import static shop.wannab.couponservice.domain.coupon.QCoupon.coupon;
-import static shop.wannab.couponservice.domain.couponpolicy.QCouponPolicy.couponPolicy;
-import static shop.wannab.couponservice.domain.couponpolicy.QPolicyTargetBook.policyTargetBook;
-import static shop.wannab.couponservice.domain.couponpolicy.QPolicyTargetCategory.policyTargetCategory;
+import static shop.wannab.couponservice.coupon.entity.QCoupon.coupon;
+import static shop.wannab.couponservice.couponpolicy.entity.QCouponPolicy.couponPolicy;
+import static shop.wannab.couponservice.couponpolicy.entity.QPolicyTargetBook.policyTargetBook;
+import static shop.wannab.couponservice.couponpolicy.entity.QPolicyTargetCategory.policyTargetCategory;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -14,10 +14,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
-import shop.wannab.couponservice.coupon.repository.CouponRepositoryCustom;
-import shop.wannab.couponservice.coupon.entity.CouponStatus;
 import shop.wannab.couponservice.coupon.dto.ApplicableCouponInfo;
 import shop.wannab.couponservice.coupon.entity.Coupon;
+import shop.wannab.couponservice.coupon.entity.CouponStatus;
+import shop.wannab.couponservice.coupon.repository.CouponRepositoryCustom;
 import shop.wannab.couponservice.couponpolicy.entity.CouponPolicy;
 import shop.wannab.couponservice.couponpolicy.entity.CouponType;
 import shop.wannab.couponservice.couponpolicy.entity.PolicyStatus;
