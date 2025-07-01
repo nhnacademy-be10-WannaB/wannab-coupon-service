@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
-import shop.wannab.couponservice.domain.category.category.dto.CategoryHierarchyDto;
+import shop.wannab.couponservice.category.dto.CategoryHierarchyDto;
 
 //TODO: api 경로,book-service url 경로 정리
 @FeignClient(name = "book-service", contextId = "bookServiceClient")
