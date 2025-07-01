@@ -11,18 +11,20 @@ import org.springframework.transaction.annotation.Transactional;
 import shop.wannab.couponservice.category.CategoryService;
 import shop.wannab.couponservice.client.BookServiceClient;
 import shop.wannab.couponservice.coupon.repository.impl.CouponRepositoryImpl;
-import shop.wannab.couponservice.couponpolicy.entity.CouponType;
-import shop.wannab.couponservice.couponpolicy.entity.DiscountType;
-import shop.wannab.couponservice.couponpolicy.entity.PolicyStatus;
-import shop.wannab.couponservice.couponpolicy.entity.PolicyTargetBook;
-import shop.wannab.couponservice.couponpolicy.repository.PolicyTargetBookRepository;
-import shop.wannab.couponservice.couponpolicy.entity.PolicyTargetCategory;
-import shop.wannab.couponservice.couponpolicy.repository.PolicyTargetCategoryRepository;
 import shop.wannab.couponservice.couponpolicy.dto.CouponPolicyResponseDto;
 import shop.wannab.couponservice.couponpolicy.dto.CreateCouponPolicyDto;
 import shop.wannab.couponservice.couponpolicy.dto.IssuableCouponPolicyDto;
 import shop.wannab.couponservice.couponpolicy.entity.CouponPolicy;
+import shop.wannab.couponservice.couponpolicy.entity.CouponType;
+import shop.wannab.couponservice.couponpolicy.entity.DiscountType;
+import shop.wannab.couponservice.couponpolicy.entity.PolicyStatus;
+import shop.wannab.couponservice.couponpolicy.entity.PolicyTargetBook;
+import shop.wannab.couponservice.couponpolicy.entity.PolicyTargetCategory;
+import shop.wannab.couponservice.couponpolicy.exception.CouponPolicyErrorCode;
+import shop.wannab.couponservice.couponpolicy.exception.CouponPolicyException;
 import shop.wannab.couponservice.couponpolicy.repository.CouponPolicyRepository;
+import shop.wannab.couponservice.couponpolicy.repository.PolicyTargetBookRepository;
+import shop.wannab.couponservice.couponpolicy.repository.PolicyTargetCategoryRepository;
 
 @Service
 public class CouponPolicyService {
@@ -76,7 +78,7 @@ public class CouponPolicyService {
             couponPolicy.setCouponType(newCouponType);
 
             if (couponPolicyRepository.findByCouponTypeAndPolicyStatus(newCouponType, PolicyStatus.ACTIVE).isPresent()) {
-                throw new IllegalArgumentException(newCouponType.name() + " 타입의 쿠폰 정책은 이미 존재합니다. 단 하나의 정책만 허용됩니다.");
+                throw new CouponPolicyException(CouponPolicyErrorCode.POLICY_ALREADY_EXISTS);
             }
             couponPolicyRepository.save(couponPolicy);
 
@@ -85,11 +87,11 @@ public class CouponPolicyService {
 
             long bookId = request.getTargetBookId();
             if (bookId <= 0) {
-                throw new IllegalArgumentException("BOOK 타입 쿠폰 정책 생성 시 유효한 도서 ID가 필요합니다.");
+                throw new CouponPolicyException(CouponPolicyErrorCode.INVALID_BOOK_ID);
             }
 
             if (policyTargetBookRepository.findByBookId(bookId).isPresent()) {
-                throw new IllegalArgumentException("도서 ID " + bookId + "에 대한 BOOK 타입 쿠폰 정책은 이미 존재합니다. 단 하나의 정책만 허용됩니다.");
+                throw new CouponPolicyException(CouponPolicyErrorCode.BOOK_POLICY_ALREADY_EXISTS);
             }
 
             couponPolicy.setCouponType(newCouponType);
@@ -101,18 +103,17 @@ public class CouponPolicyService {
 
             long categoryId = request.getTargetCategoryId();
             if (categoryId <= 0) {
-                throw new IllegalArgumentException("CATEGORY 타입 쿠폰 정책 생성 시 유효한 카테고리 ID가 필요합니다.");
+                throw new CouponPolicyException(CouponPolicyErrorCode.INVALID_CATEGORY_ID);
             }
 
             if (policyTargetCategoryRepository.findByCategoryId(categoryId).isPresent()) {
-                throw new IllegalArgumentException("카테고리 ID " + categoryId + "에 대한 CATEGORY 타입 쿠폰 정책은 이미 존재합니다. 단 하나의 정책만 허용됩니다.");
+                throw new CouponPolicyException(CouponPolicyErrorCode.CATEGORY_POLICY_ALREADY_EXISTS);
             }
 
             couponPolicy.setCouponType(newCouponType);
             couponPolicyRepository.save(couponPolicy);
             createPolicyTargetCategory(categoryId, couponPolicy);
         }
-
     }
 
     private void createPolicyTargetBook(long bookId, CouponPolicy couponPolicy) {
