@@ -6,6 +6,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import shop.wannab.couponservice.client.BookServiceClient;
@@ -18,6 +22,7 @@ import shop.wannab.couponservice.domain.coupon.dto.CouponResponseToUserDto;
 import shop.wannab.couponservice.domain.coupon.dto.CouponUsageRequestDto;
 import shop.wannab.couponservice.domain.coupon.dto.OrderCouponDto;
 import shop.wannab.couponservice.domain.coupon.dto.OrderCouponsRequestDto;
+import shop.wannab.couponservice.domain.coupon.dto.PageResponseDto;
 import shop.wannab.couponservice.domain.coupon.dto.TryApplyCouponsRequestDto;
 import shop.wannab.couponservice.domain.coupon.dto.TryApplyCouponsResponseDto;
 import shop.wannab.couponservice.domain.couponpolicy.CouponPolicy;
@@ -35,12 +40,13 @@ public class CouponService {
     private final CouponRepositoryImpl couponRepositoryImpl;
     private final UserServiceClient userServiceClient;
     private final BookServiceClient bookServiceClient;
+
     public CouponService(CouponRepository couponRepository,
                          CouponPolicyRepository couponPolicyRepository,
                          CouponRepositoryImpl couponRepositoryImpl,
                          UserServiceClient userServiceClient,
                          BookServiceClient bookServiceClient
-                         ) {
+    ) {
 
         this.couponRepository = couponRepository;
         this.couponPolicyRepository = couponPolicyRepository;
@@ -51,7 +57,8 @@ public class CouponService {
 
     @Transactional
     public void issueWelcomeCouponForNewUser(Long userId) {
-        CouponPolicy welcomePolicy = couponPolicyRepository.findByCouponTypeAndPolicyStatus(CouponType.WELCOME, PolicyStatus.ACTIVE).orElse(null);
+        CouponPolicy welcomePolicy = couponPolicyRepository.findByCouponTypeAndPolicyStatus(CouponType.WELCOME,
+                PolicyStatus.ACTIVE).orElse(null);
 
         if (welcomePolicy == null) {
             throw new IllegalArgumentException("웰컴 쿠폰이 없습니다.");
@@ -84,7 +91,8 @@ public class CouponService {
     public void issueBirthdayCoupon(int month) {
         System.out.println("생일 쿠폰 발급 로직 시작 (월: " + month + ")");
 
-        CouponPolicy birthdayPolicy = couponPolicyRepository.findByCouponTypeAndPolicyStatus(CouponType.BIRTHDAY,PolicyStatus.ACTIVE).orElse(null);
+        CouponPolicy birthdayPolicy = couponPolicyRepository.findByCouponTypeAndPolicyStatus(CouponType.BIRTHDAY,
+                PolicyStatus.ACTIVE).orElse(null);
         if (birthdayPolicy == null) {
             throw new IllegalArgumentException("해당 쿠폰이 없습니다.");
         }
@@ -111,13 +119,19 @@ public class CouponService {
     }
 
     @Transactional(readOnly = true)
-    public List<CouponResponseToUserDto> getUserCoupons(Long userId) {
-        List<Coupon> coupons = couponRepository.findByUserId(userId);
-        List<CouponResponseToUserDto> respCouponDtoList = new ArrayList<>();
-        for (Coupon coupon : coupons) {
-            respCouponDtoList.add(new CouponResponseToUserDto(coupon));
-        }
-        return respCouponDtoList;
+    public PageResponseDto<CouponResponseToUserDto> getUserCoupons(Long userId, Pageable pageable) {
+        Pageable pageableWithMultiSort = PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                Sort.by(
+                        Sort.Order.asc("status"),
+                        Sort.Order.asc("endDate"),
+                        Sort.Order.desc("issuedAt")
+                )
+        );
+        Page<Coupon> couponPage = couponRepository.findByUserId(userId, pageableWithMultiSort);
+        Page<CouponResponseToUserDto> dtoPage = couponPage.map(CouponResponseToUserDto::new);
+        return new PageResponseDto<>(dtoPage);
     }
 
     @Transactional(readOnly = true)
@@ -175,8 +189,8 @@ public class CouponService {
 
         for (CouponUsageRequestDto.UsedCouponInfo usedCouponInfo : usedCoupons) {
             Coupon coupon = couponRepository.findById(usedCouponInfo.getCouponId())
-                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 쿠폰입니다. ID: " + usedCouponInfo.getCouponId()));
-
+                    .orElseThrow(
+                            () -> new IllegalArgumentException("존재하지 않는 쿠폰입니다. ID: " + usedCouponInfo.getCouponId()));
 
             if (!coupon.getUserId().equals(userId)) {
                 throw new IllegalStateException("쿠폰의 소유자가 일치하지 않습니다.");
@@ -186,11 +200,9 @@ public class CouponService {
                 throw new IllegalStateException("이미 사용되었거나 만료된 쿠폰입니다.");
             }
 
-
             coupon.setStatus(CouponStatus.USED);
             coupon.setUsedAt(LocalDate.now());
             coupon.setOrderId(requestDto.getOrderId());
-
 
             if (usedCouponInfo.getBookId() != null) {
                 coupon.setOrderBookId(usedCouponInfo.getBookId());
@@ -207,7 +219,7 @@ public class CouponService {
 
         Map<Long, Coupon> couponMap = coupons.stream()
                 .collect(Collectors.toMap(Coupon::getCouponId, coupon -> coupon));
-        for(Map.Entry<Long, Long> entry : couponIdToBookIdMap.entrySet()) {
+        for (Map.Entry<Long, Long> entry : couponIdToBookIdMap.entrySet()) {
             Coupon coupon = couponMap.get(entry.getKey());
             Long targetBookId = entry.getValue();
             respCouponDtoList.add(new TryApplyCouponsResponseDto(

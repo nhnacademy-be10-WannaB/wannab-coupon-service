@@ -1,6 +1,7 @@
 package shop.wannab.couponservice.controller;
 
 import java.util.List;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,6 +14,7 @@ import shop.wannab.couponservice.domain.coupon.dto.ApplicableCouponsDto;
 import shop.wannab.couponservice.domain.coupon.dto.CouponResponseToUserDto;
 import shop.wannab.couponservice.domain.coupon.dto.CouponUsageRequestDto;
 import shop.wannab.couponservice.domain.coupon.dto.OrderCouponsRequestDto;
+import shop.wannab.couponservice.domain.coupon.dto.PageResponseDto;
 import shop.wannab.couponservice.domain.coupon.dto.TryApplyCouponsRequestDto;
 import shop.wannab.couponservice.domain.coupon.dto.TryApplyCouponsResponseDto;
 import shop.wannab.couponservice.domain.couponpolicy.dto.IssuableCouponPolicyDto;
@@ -51,16 +53,21 @@ public class CouponController {
 
     @GetMapping("/issuable-coupons")
     public ResponseEntity<List<IssuableCouponPolicyDto>> getIssuableCoupons(
-            @RequestParam Long bookId,
-            @RequestParam Long categoryId){
-        List<IssuableCouponPolicyDto> couponList = couponPolicyService.findIssuablePoliciesForBook(bookId,categoryId);
+            @RequestParam Long bookId){
+        List<IssuableCouponPolicyDto> couponList = couponPolicyService.findIssuablePoliciesForBook(bookId);
         return ResponseEntity.ok(couponList);
     }
 
     @GetMapping("/me")
-    public ResponseEntity<List<CouponResponseToUserDto>> getUserCoupons(
-            @RequestHeader("X-User-Id") Long userId){
-        return ResponseEntity.ok(couponService.getUserCoupons(userId));
+    public ResponseEntity<PageResponseDto<CouponResponseToUserDto>> getCouponsForUser(
+            @RequestHeader("X-User-Id") Long userId,
+            Pageable pageable) {
+
+        // 자신의 서비스 로직을 호출하여 결과를 가져옵니다.
+        PageResponseDto<CouponResponseToUserDto> couponPage = couponService.getUserCoupons(userId, pageable);
+
+        // 결과를 HTTP 응답 바디에 담아 반환합니다.
+        return ResponseEntity.ok(couponPage);
     }
 
     @PostMapping("/order")
