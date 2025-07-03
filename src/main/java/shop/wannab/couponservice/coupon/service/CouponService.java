@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import shop.wannab.couponservice.client.BookServiceClient;
 import shop.wannab.couponservice.client.UserServiceClient;
-import shop.wannab.couponservice.coupon.repository.CouponRepository;
 import shop.wannab.couponservice.coupon.dto.ApplicableCouponInfo;
 import shop.wannab.couponservice.coupon.dto.ApplicableCouponsDto;
 import shop.wannab.couponservice.coupon.dto.BookCouponDto;
@@ -27,11 +26,16 @@ import shop.wannab.couponservice.coupon.dto.TryApplyCouponsRequestDto;
 import shop.wannab.couponservice.coupon.dto.TryApplyCouponsResponseDto;
 import shop.wannab.couponservice.coupon.entity.Coupon;
 import shop.wannab.couponservice.coupon.entity.CouponStatus;
+import shop.wannab.couponservice.coupon.exception.CouponErrorCode;
+import shop.wannab.couponservice.coupon.exception.CouponException;
+import shop.wannab.couponservice.coupon.repository.CouponRepository;
 import shop.wannab.couponservice.coupon.repository.impl.CouponRepositoryImpl;
 import shop.wannab.couponservice.couponpolicy.entity.CouponPolicy;
-import shop.wannab.couponservice.couponpolicy.repository.CouponPolicyRepository;
 import shop.wannab.couponservice.couponpolicy.entity.CouponType;
 import shop.wannab.couponservice.couponpolicy.entity.PolicyStatus;
+import shop.wannab.couponservice.couponpolicy.exception.CouponPolicyErrorCode;
+import shop.wannab.couponservice.couponpolicy.exception.CouponPolicyException;
+import shop.wannab.couponservice.couponpolicy.repository.CouponPolicyRepository;
 
 @Service
 public class CouponService {
@@ -58,14 +62,15 @@ public class CouponService {
     @Transactional
     public void issueWelcomeCouponForNewUser(Long userId) {
         CouponPolicy welcomePolicy = couponPolicyRepository.findByCouponTypeAndPolicyStatus(CouponType.WELCOME,
-                PolicyStatus.ACTIVE).orElse(null);
+                        PolicyStatus.ACTIVE)
+                .orElseThrow(() -> new CouponException(CouponErrorCode.WELCOME_COUPON_POLICY_NOT_FOUND));
 
         if (welcomePolicy == null) {
-            throw new IllegalArgumentException("웰컴 쿠폰이 없습니다.");
+            throw new CouponException(CouponErrorCode.COUPON_NOT_FOUND);
         }
 
         if (couponRepository.existsByUserIdAndCouponPolicy(userId, welcomePolicy)) {
-            throw new IllegalArgumentException("이미 웰컴 쿠폰을 발급받았습니다.");
+            throw new CouponException(CouponErrorCode.COUPON_ALREADY_ISSUED);
         }
 
         saveNewCoupon(userId, welcomePolicy, "WC");
@@ -73,14 +78,15 @@ public class CouponService {
 
     @Transactional
     public void issueGeneralCoupon(Long userId, Long couponPolicyId) {
-        CouponPolicy couponPolicy = couponPolicyRepository.findById(couponPolicyId).orElse(null);
+        CouponPolicy couponPolicy = couponPolicyRepository.findById(couponPolicyId)
+                .orElseThrow(() -> new CouponPolicyException(CouponPolicyErrorCode.POLICY_NOT_FOUND));
 
         if (couponPolicy == null) {
-            throw new IllegalArgumentException("해당 쿠폰이 없습니다.");
+            throw new CouponException(CouponErrorCode.COUPON_NOT_FOUND);
         }
 
         if (couponRepository.existsByUserIdAndCouponPolicy(userId, couponPolicy)) {
-            throw new IllegalArgumentException("이미 해당 쿠폰을 발급받았습니다.");
+            throw new CouponException(CouponErrorCode.COUPON_ALREADY_ISSUED);
         }
 
         saveNewCoupon(userId, couponPolicy, "CST");
@@ -92,9 +98,11 @@ public class CouponService {
         System.out.println("생일 쿠폰 발급 로직 시작 (월: " + month + ")");
 
         CouponPolicy birthdayPolicy = couponPolicyRepository.findByCouponTypeAndPolicyStatus(CouponType.BIRTHDAY,
-                PolicyStatus.ACTIVE).orElse(null);
+                        PolicyStatus.ACTIVE)
+                .orElseThrow(() -> new CouponPolicyException(CouponPolicyErrorCode.POLICY_NOT_FOUND));
+
         if (birthdayPolicy == null) {
-            throw new IllegalArgumentException("해당 쿠폰이 없습니다.");
+            throw new CouponException(CouponErrorCode.BIRTHDAY_COUPON_POLICY_NOT_FOUND);
         }
 
         List<Long> birthdayUserIds;
@@ -108,7 +116,7 @@ public class CouponService {
             try {
                 saveNewCoupon(userId, birthdayPolicy, "BD");
             } catch (IllegalArgumentException e) {
-                throw new IllegalArgumentException("생일 쿠폰 발급 실패");
+                throw new CouponException(CouponErrorCode.BIRTHDAY_COUPON_ISSUE_FAILED);
             }
         }
     }
@@ -189,15 +197,15 @@ public class CouponService {
 
         for (CouponUsageRequestDto.UsedCouponInfo usedCouponInfo : usedCoupons) {
             Coupon coupon = couponRepository.findById(usedCouponInfo.getCouponId())
-                    .orElseThrow(
-                            () -> new IllegalArgumentException("존재하지 않는 쿠폰입니다. ID: " + usedCouponInfo.getCouponId()));
+                    .orElseThrow(() -> new CouponException(CouponErrorCode.COUPON_NOT_FOUND));
 
             if (!coupon.getUserId().equals(userId)) {
-                throw new IllegalStateException("쿠폰의 소유자가 일치하지 않습니다.");
+                throw new CouponException(CouponErrorCode.COUPON_OWNER_NOT_MATCH);
             }
 
             if (coupon.getStatus() != CouponStatus.NOT_USED) {
-                throw new IllegalStateException("이미 사용되었거나 만료된 쿠폰입니다.");
+                throw new CouponException(CouponErrorCode.COUPON_ALREADY_USED_OR_EXPIRED);
+
             }
 
             coupon.setStatus(CouponStatus.USED);
