@@ -14,10 +14,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import shop.wannab.couponservice.category.CategoryService;
 import shop.wannab.couponservice.category.dto.CategoryHierarchyDto;
-import shop.wannab.couponservice.couponpolicy.service.CouponPolicyService;
 import shop.wannab.couponservice.couponpolicy.dto.CouponPageDataDto;
 import shop.wannab.couponservice.couponpolicy.dto.CouponPolicyResponseDto;
 import shop.wannab.couponservice.couponpolicy.dto.CreateCouponPolicyDto;
+import shop.wannab.couponservice.couponpolicy.service.CouponPolicyService;
 
 
 @RestController
@@ -35,6 +35,7 @@ public class CouponPolicyController {
         return ResponseEntity.ok().build();
     }
 
+    //TODO : 엘라스틱 서치 완료되면 해당 검색기능 재활용하기
     @GetMapping
     public ResponseEntity<CouponPageDataDto> getAllCouponPolicies() {
         List<CategoryHierarchyDto> categoryHierarchyDtos = categoryService.getCategoryHierarchy();
