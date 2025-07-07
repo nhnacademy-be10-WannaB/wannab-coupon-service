@@ -11,15 +11,14 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Entity
 @Getter
-@Setter
-@Builder
 @NoArgsConstructor
+@Builder
 @AllArgsConstructor
 public class PolicyTargetBook {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long policyTargetBookId;
@@ -28,6 +27,6 @@ public class PolicyTargetBook {
     private Long bookId;
 
     @OneToOne
-    @JoinColumn(name = "coupon_policy_id",nullable = false)
+    @JoinColumn(name = "coupon_policy_id", nullable = false)
     private CouponPolicy couponPolicy;
 }
