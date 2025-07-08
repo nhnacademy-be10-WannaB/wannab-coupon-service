@@ -9,14 +9,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import shop.wannab.couponservice.category.dto.CategoryHierarchyDto;
 
-//TODO: api 경로,book-service url 경로 정리
-@FeignClient(name = "book-service", contextId = "bookServiceClient")
+@FeignClient(name = "gateway", url = "${gateway.api.url}", path = "/book-service", contextId = "bookServiceClient")
 public interface BookServiceClient {
     @PostMapping("/api/books/names")
     Map<Long, String> getBookNames(@RequestBody List<Long> bookIds);
 
     // 여러 카테고리 ID를 받아 이름 목록을 반환
-    @PostMapping("/api/books/categories/names")
+    @PostMapping("/api/categories/names")
     Map<Long, String> getCategoryNames(@RequestBody List<Long> categoryIds);
 
     @GetMapping("/api/categories/hierarchy")

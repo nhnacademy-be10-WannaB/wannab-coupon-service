@@ -92,7 +92,6 @@ public class CouponService {
         saveNewCoupon(userId, couponPolicy, "CST");
     }
 
-    //TODO: FeignClient로 변환 후 처리
     @Transactional
     public void issueBirthdayCoupon(int month) {
         System.out.println("생일 쿠폰 발급 로직 시작 (월: " + month + ")");

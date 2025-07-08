@@ -12,7 +12,8 @@ public enum CouponPolicyErrorCode implements ErrorCode {
     BOOK_POLICY_ALREADY_EXISTS(409, 1003, "해당 도서 ID에 대한 BOOK 타입 쿠폰 정책은 이미 존재합니다."),
     INVALID_CATEGORY_ID(400, 1004, "CATEGORY 타입 쿠폰 정책 생성 시 유효한 카테고리 ID가 필요합니다."),
     CATEGORY_POLICY_ALREADY_EXISTS(409, 1005, "해당 카테고리 ID에 대한 CATEGORY 타입 쿠폰 정책은 이미 존재합니다."),
-    POLICY_NOT_FOUND(404, 1006, "존재하지 않는 쿠폰 정책입니다.");
+    POLICY_NOT_FOUND(404, 1006, "존재하지 않는 쿠폰 정책입니다."),
+    INVALID_COUPON_TYPE(400, 1007, "지원하지 않는 쿠폰 타입입니다.");
 
     private final int status;
     private final int code;
