@@ -2,10 +2,10 @@ package shop.wannab.couponservice.couponpolicy.service;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import shop.wannab.couponservice.category.CategoryService;
@@ -16,17 +16,17 @@ import shop.wannab.couponservice.couponpolicy.dto.CreateCouponPolicyDto;
 import shop.wannab.couponservice.couponpolicy.dto.IssuableCouponPolicyDto;
 import shop.wannab.couponservice.couponpolicy.entity.CouponPolicy;
 import shop.wannab.couponservice.couponpolicy.entity.CouponType;
-import shop.wannab.couponservice.couponpolicy.entity.DiscountType;
 import shop.wannab.couponservice.couponpolicy.entity.PolicyStatus;
 import shop.wannab.couponservice.couponpolicy.entity.PolicyTargetBook;
 import shop.wannab.couponservice.couponpolicy.entity.PolicyTargetCategory;
-import shop.wannab.couponservice.couponpolicy.exception.CouponPolicyErrorCode;
-import shop.wannab.couponservice.couponpolicy.exception.CouponPolicyException;
 import shop.wannab.couponservice.couponpolicy.repository.CouponPolicyRepository;
 import shop.wannab.couponservice.couponpolicy.repository.PolicyTargetBookRepository;
 import shop.wannab.couponservice.couponpolicy.repository.PolicyTargetCategoryRepository;
+import shop.wannab.couponservice.couponpolicy.service.couponcreator.CouponPolicyCreator;
+import shop.wannab.couponservice.couponpolicy.service.couponcreator.CouponPolicyCreatorFactory;
 
 @Service
+@RequiredArgsConstructor
 public class CouponPolicyService {
     private final CouponPolicyRepository couponPolicyRepository;
     private final PolicyTargetBookRepository policyTargetBookRepository;
@@ -34,155 +34,62 @@ public class CouponPolicyService {
     private final CategoryService categoryService;
     private final CouponRepositoryImpl couponRepositoryImpl;
     private final BookServiceClient bookServiceClient;
-
-    public CouponPolicyService(
-            CouponPolicyRepository couponPolicyRepository,
-            PolicyTargetBookRepository policyTargetBookRepository,
-            PolicyTargetCategoryRepository policyTargetCategoryRepository,
-            CouponRepositoryImpl couponRepositoryImpl,
-            CategoryService categoryService,
-            BookServiceClient bookServiceClient
-    ) {
-        this.couponPolicyRepository = couponPolicyRepository;
-        this.policyTargetBookRepository = policyTargetBookRepository;
-        this.policyTargetCategoryRepository = policyTargetCategoryRepository;
-        this.categoryService = categoryService;
-        this.couponRepositoryImpl = couponRepositoryImpl;
-        this.bookServiceClient = bookServiceClient;
-    }
+    private final CouponPolicyCreatorFactory couponPolicyCreatorFactory;
 
     @Transactional
     public void createCouponPolicy(CreateCouponPolicyDto request) {
-        CouponPolicy couponPolicy = CouponPolicy.builder()
-                .couponPolicyName(request.getName())
-                .discountType(DiscountType.valueOf(request.getDiscountType()))
-                .discountValue(request.getDiscountValue())
-                .maxDiscount(request.getMaxDiscount())
-                .minPurchase(request.getMinPurchase())
-                .validDays(request.getValidDays())
-                .fixedStartDate(request.getStartDate())
-                .fixedEndDate(request.getEndDate())
-                .policyStatus(PolicyStatus.ACTIVE).build();
+        CouponPolicyCreator creator = couponPolicyCreatorFactory.findCreator(request.getCouponType());
 
-        CouponType newCouponType;
-
-
-        if (request.getCouponType().equals("NORMAL")) {
-            if (request.isBirthday()) {
-                newCouponType = CouponType.BIRTHDAY;
-            } else if (request.isWelcome()) {
-                newCouponType = CouponType.WELCOME;
-            } else {
-                newCouponType = CouponType.CUSTOM;
-            }
-            couponPolicy.setCouponType(newCouponType);
-
-            if (couponPolicyRepository.findByCouponTypeAndPolicyStatus(newCouponType, PolicyStatus.ACTIVE).isPresent()) {
-                throw new CouponPolicyException(CouponPolicyErrorCode.POLICY_ALREADY_EXISTS);
-            }
-            couponPolicyRepository.save(couponPolicy);
-
-        } else if (request.getCouponType().equals("BOOK")) {
-            newCouponType = CouponType.BOOK;
-
-            long bookId = request.getTargetBookId();
-            if (bookId <= 0) {
-                throw new CouponPolicyException(CouponPolicyErrorCode.INVALID_BOOK_ID);
-            }
-
-            if (policyTargetBookRepository.findByBookId(bookId).isPresent()) {
-                throw new CouponPolicyException(CouponPolicyErrorCode.BOOK_POLICY_ALREADY_EXISTS);
-            }
-
-            couponPolicy.setCouponType(newCouponType);
-            couponPolicyRepository.save(couponPolicy);
-            createPolicyTargetBook(bookId, couponPolicy);
-
-        } else {
-            newCouponType = CouponType.CATEGORY;
-
-            long categoryId = request.getTargetCategoryId();
-            if (categoryId <= 0) {
-                throw new CouponPolicyException(CouponPolicyErrorCode.INVALID_CATEGORY_ID);
-            }
-
-            if (policyTargetCategoryRepository.findByCategoryId(categoryId).isPresent()) {
-                throw new CouponPolicyException(CouponPolicyErrorCode.CATEGORY_POLICY_ALREADY_EXISTS);
-            }
-
-            couponPolicy.setCouponType(newCouponType);
-            couponPolicyRepository.save(couponPolicy);
-            createPolicyTargetCategory(categoryId, couponPolicy);
-        }
+        creator.createCouponPolicy(request);
     }
 
-    private void createPolicyTargetBook(long bookId, CouponPolicy couponPolicy) {
-        PolicyTargetBook policyTargetBook = PolicyTargetBook.builder()
-                .bookId(bookId)
-                .couponPolicy(couponPolicy).build();
-        policyTargetBookRepository.save(policyTargetBook);
-    }
-
-    private void createPolicyTargetCategory(long categoryId, CouponPolicy couponPolicy) {
-        PolicyTargetCategory policyTargetCategory = PolicyTargetCategory.builder()
-                .categoryId(categoryId)
-                .couponPolicy(couponPolicy).build();
-        policyTargetCategoryRepository.save(policyTargetCategory);
-    }
 
     //쿠폰 정책 목록
     @Transactional(readOnly = true)
     public List<CouponPolicyResponseDto> getCouponPolicies() {
         List<CouponPolicy> activePolicies = couponPolicyRepository.findByPolicyStatus(PolicyStatus.ACTIVE);
-
-        Map<Long, Long> policyToBookIdMap = new HashMap<>();
-        Map<Long, Long> policyToCategoryIdMap = new HashMap<>();
-
-        List<Long> bookIdsToFetch = new ArrayList<>();
-        List<Long> categoryIdsToFetch = new ArrayList<>();
-
-        for (CouponPolicy policy : activePolicies) {
-            if (policy.getCouponType() == CouponType.BOOK) {
-                Optional<Long> bookIdOptional = policyTargetBookRepository.findBookIdByCouponPolicy(policy);
-                if (bookIdOptional.isPresent()) {
-                    Long bookId = bookIdOptional.get();
-                    bookIdsToFetch.add(bookId);
-                    policyToBookIdMap.put(policy.getCouponPolicyId(), bookId);
-                }
-            } else if (policy.getCouponType() == CouponType.CATEGORY) {
-                Optional<Long> categoryIdOptional = policyTargetCategoryRepository.findCategoryIdByCouponPolicy(policy);
-                if (categoryIdOptional.isPresent()) {
-                    Long categoryId = categoryIdOptional.get();
-                    categoryIdsToFetch.add(categoryId);
-                    policyToCategoryIdMap.put(policy.getCouponPolicyId(), categoryId);
-                }
-            }
+        if (activePolicies.isEmpty()) {
+            return new ArrayList<>();
         }
 
-        Map<Long, String> bookNamesMap = bookServiceClient.getBookNames(bookIdsToFetch);
+        List<Long> policyIds = activePolicies.stream()
+                .map(CouponPolicy::getCouponPolicyId)
+                .collect(Collectors.toList());
+
+        Map<Long, Long> policyToBookIdMap = policyTargetBookRepository.findAllByCouponPolicy_CouponPolicyIdIn(policyIds)
+                .stream()
+                .collect(Collectors.toMap(ptb -> ptb.getCouponPolicy().getCouponPolicyId(), PolicyTargetBook::getBookId));
+
+        Map<Long, Long> policyToCategoryIdMap = policyTargetCategoryRepository.findAllByCouponPolicy_CouponPolicyIdIn(policyIds)
+                .stream()
+                .collect(Collectors.toMap(ptc -> ptc.getCouponPolicy().getCouponPolicyId(), PolicyTargetCategory::getCategoryId));
+
+        List<Long> bookIdsToFetch = new ArrayList<>(policyToBookIdMap.values());
+        List<Long> categoryIdsToFetch = new ArrayList<>(policyToCategoryIdMap.values());
+
+//  Map<Long, String> bookNamesMap = bookServiceClient.getBookNames(bookIdsToFetch);
         Map<Long, String> categoryNamesMap = bookServiceClient.getCategoryNames(categoryIdsToFetch);
 
-        List<CouponPolicyResponseDto> responseDtos = new ArrayList<>();
-        for (CouponPolicy policy : activePolicies) {
-            String bookName = null;
-            String categoryName = null;
-
-            if (policy.getCouponType() == CouponType.BOOK) {
-                Long bookId = policyToBookIdMap.get(policy.getCouponPolicyId());
-                if (bookId != null) {
-                    bookName = bookNamesMap.getOrDefault(bookId, "알 수 없는 책");
-                }
-            } else if (policy.getCouponType() == CouponType.CATEGORY) {
-                Long categoryId = policyToCategoryIdMap.get(policy.getCouponPolicyId());
-                if (categoryId != null) {
-                    categoryName = categoryNamesMap.getOrDefault(categoryId, "알 수 없는 카테고리");
-                }
-            }
-
-            responseDtos.add(CouponPolicyResponseDto.from(policy, bookName, categoryName));
-        }
-
-        return responseDtos;
+        return activePolicies.stream()
+                .map(policy -> {
+                    String bookName = null;
+                    String categoryName = null;
+                //TODO : 향후 엘라스틱 서치 활성화되면 활용 예정
+//              if (policy.getCouponType() == CouponType.BOOK) {
+//                  Long bookId = policyToBookIdMap.get(policy.getCouponPolicyId());
+//                  if (bookId != null) {
+//                      bookName = bookNamesMap.getOrDefault(bookId, "알 수 없는 책");
+//                  }
+//              } else
+                    if (policy.getCouponType() == CouponType.CATEGORY) {
+                        Long categoryId = policyToCategoryIdMap.get(policy.getCouponPolicyId());
+                        if (categoryId != null) {
+                            categoryName = categoryNamesMap.getOrDefault(categoryId, "알 수 없는 카테고리");
+                        }
+                    }
+                    return CouponPolicyResponseDto.from(policy, bookName, categoryName);
+                })
+                .collect(Collectors.toList());
     }
 
 
