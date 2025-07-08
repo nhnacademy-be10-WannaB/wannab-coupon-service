@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import shop.wannab.couponservice.category.dto.CategoryHierarchyDto;
 
-@FeignClient(name = "gateway", url = "${gateway.api.url}", path = "/book-service", contextId = "bookServiceClient")
+@FeignClient(name = "book-service", url = "${book.api.url}")
 public interface BookServiceClient {
     @PostMapping("/api/books/names")
     Map<Long, String> getBookNames(@RequestBody List<Long> bookIds);
