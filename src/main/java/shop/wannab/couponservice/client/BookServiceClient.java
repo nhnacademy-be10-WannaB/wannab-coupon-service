@@ -15,7 +15,7 @@ public interface BookServiceClient {
     Map<Long, String> getBookNames(@RequestBody List<Long> bookIds);
 
     // 여러 카테고리 ID를 받아 이름 목록을 반환
-    @PostMapping("/api/books/categories/names")
+    @PostMapping("/api/categories/names")
     Map<Long, String> getCategoryNames(@RequestBody List<Long> categoryIds);
 
     @GetMapping("/api/categories/hierarchy")
