@@ -28,3 +28,11 @@ eureka:
   client:
     enabled: false
 
+book:
+  api:
+    url: ""
+
+user:
+  api:
+    url: ""
+
