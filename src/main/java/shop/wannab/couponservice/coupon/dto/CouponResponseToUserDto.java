@@ -3,6 +3,7 @@ package shop.wannab.couponservice.coupon.dto;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import shop.wannab.couponservice.coupon.entity.Coupon;
 import shop.wannab.couponservice.couponpolicy.entity.CouponPolicy;
@@ -11,13 +12,14 @@ import shop.wannab.couponservice.couponpolicy.entity.DiscountType;
 
 @Getter
 @Setter
+@NoArgsConstructor
 public class CouponResponseToUserDto {
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy.MM.dd");
     private String couponName;
     private String discountInfo;
+    private String purchaseTerm;
     private String period;
     private String usageStatus;
-    private String purchaseTerm;
 
     public CouponResponseToUserDto(Coupon coupon) {
         CouponPolicy policy = coupon.getCouponPolicy();
