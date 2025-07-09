@@ -4,9 +4,9 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 import shop.wannab.couponservice.category.dto.CategoryHierarchyDto;
 
 @FeignClient(name = "book-service", url = "${book.api.url}")
@@ -21,9 +21,8 @@ public interface BookServiceClient {
     @GetMapping("/api/categories/hierarchy")
     List<CategoryHierarchyDto> getCategoryHierarchy();
 
-    @PostMapping("/api/categories")
-    List<Long> getCategoryIds(@RequestBody List<Long> bookIds);
+    @PostMapping("/api/categories/ids-map")
+    Map<Long, Long> getBookToCategoryMap(@RequestBody List<Long> bookIds);
 
-    @GetMapping("/api/category")
-    Long getCategoryId(@RequestParam Long id);
-}
+    @GetMapping("/api/categories/{bookId}/ancestor-category-ids")
+    List<Long> getAncestorCategoryIds(@PathVariable("bookId") Long bookId);}

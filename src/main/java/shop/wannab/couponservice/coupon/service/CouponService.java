@@ -146,14 +146,9 @@ public class CouponService {
             Long userId,
             OrderCouponsRequestDto requestDto) {
 
-        Map<Long, Long> bookIdToCategoryIdMap = new HashMap<>();
         List<Long> bookIds = requestDto.getBookIds();
-        List<Long> categoryIds = bookServiceClient.getCategoryIds(bookIds);
-        if (bookIds != null && categoryIds != null && bookIds.size() == categoryIds.size()) {
-            for (int i = 0; i < bookIds.size(); i++) {
-                bookIdToCategoryIdMap.put(bookIds.get(i), categoryIds.get(i));
-            }
-        }
+
+        Map<Long, Long> bookIdToCategoryIdMap = bookServiceClient.getBookToCategoryMap(bookIds);
 
         List<ApplicableCouponInfo> applicableCouponsInfo =
                 couponRepositoryImpl.findApplicableCouponsForOrder(userId, bookIdToCategoryIdMap);
