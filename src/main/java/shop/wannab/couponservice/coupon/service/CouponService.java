@@ -17,7 +17,6 @@ import shop.wannab.couponservice.client.UserServiceClient;
 import shop.wannab.couponservice.coupon.dto.ApplicableCouponInfo;
 import shop.wannab.couponservice.coupon.dto.ApplicableCouponsDto;
 import shop.wannab.couponservice.coupon.dto.BookCouponDto;
-import shop.wannab.couponservice.coupon.dto.CategoryIdsResponse;
 import shop.wannab.couponservice.coupon.dto.CouponResponseToUserDto;
 import shop.wannab.couponservice.coupon.dto.CouponUsageRequestDto;
 import shop.wannab.couponservice.coupon.dto.OrderCouponDto;
@@ -147,15 +146,9 @@ public class CouponService {
             Long userId,
             OrderCouponsRequestDto requestDto) {
 
-        Map<Long, Long> bookIdToCategoryIdMap = new HashMap<>();
         List<Long> bookIds = requestDto.getBookIds();
-        CategoryIdsResponse categoryIdsResponse = bookServiceClient.getCategoryIds(bookIds);
-        List<Long> categoryIds = categoryIdsResponse.getCategoryIds();
-        if (bookIds != null && categoryIds != null && bookIds.size() == categoryIds.size()) {
-            for (int i = 0; i < bookIds.size(); i++) {
-                bookIdToCategoryIdMap.put(bookIds.get(i), categoryIds.get(i));
-            }
-        }
+
+        Map<Long, Long> bookIdToCategoryIdMap = bookServiceClient.getBookToCategoryMap(bookIds);
 
         List<ApplicableCouponInfo> applicableCouponsInfo =
                 couponRepositoryImpl.findApplicableCouponsForOrder(userId, bookIdToCategoryIdMap);

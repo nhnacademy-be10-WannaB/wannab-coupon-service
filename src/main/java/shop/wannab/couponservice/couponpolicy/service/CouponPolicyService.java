@@ -2,8 +2,10 @@ package shop.wannab.couponservice.couponpolicy.service;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -104,22 +106,23 @@ public class CouponPolicyService {
 
     @Transactional(readOnly = true)
     public List<IssuableCouponPolicyDto> findIssuablePoliciesForBook(Long bookId) {
-        List<IssuableCouponPolicyDto> issuableCouponPolicyDtoList = new ArrayList<>();
-        PolicyTargetBook policyTargetBook = policyTargetBookRepository.findByBookId(bookId).orElse(null);
-        Long categoryId = bookServiceClient.getCategoryId(bookId);
-        PolicyTargetCategory policyTargetCategory = policyTargetCategoryRepository.findById(categoryId).orElse(null);
-        if (policyTargetBook != null) {
-            if (policyTargetBook.getCouponPolicy().getFixedEndDate().isAfter(LocalDate.now())) {
-                issuableCouponPolicyDtoList.add(new IssuableCouponPolicyDto(policyTargetBook.getCouponPolicy()));
-            }
+        Set<CouponPolicy> finalPolicies = new HashSet<>();
+
+        policyTargetBookRepository.findByBookId(bookId)
+                .map(PolicyTargetBook::getCouponPolicy)
+                .filter(policy -> policy.getFixedEndDate().isAfter(LocalDate.now()))
+                .ifPresent(finalPolicies::add);
+
+
+        List<Long> categoryIds = bookServiceClient.getAncestorCategoryIds(bookId);
+
+        if (categoryIds != null && !categoryIds.isEmpty()) {
+            List<CouponPolicy> categoryPolicies = couponPolicyRepository.findActivePoliciesForCategoryIds(categoryIds);
+            finalPolicies.addAll(categoryPolicies);
         }
-        if (policyTargetCategory != null) {
-            List<Long> ancestorCategoryIds = categoryService.getAncestorCategoryIds(categoryId);
-            List<CouponPolicy> couponPolicies = couponRepositoryImpl.findActiveCouponPolicies(ancestorCategoryIds);
-            for (CouponPolicy couponPolicy : couponPolicies) {
-                issuableCouponPolicyDtoList.add(new IssuableCouponPolicyDto(couponPolicy));
-            }
-        }
-        return issuableCouponPolicyDtoList;
+
+        return finalPolicies.stream()
+                .map(IssuableCouponPolicyDto::new)
+                .collect(Collectors.toList());
     }
 }
