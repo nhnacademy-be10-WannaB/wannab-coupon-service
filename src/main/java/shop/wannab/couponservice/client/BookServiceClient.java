@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import shop.wannab.couponservice.category.dto.CategoryHierarchyDto;
+import shop.wannab.couponservice.coupon.dto.CategoryIdsResponse;
 
 @FeignClient(name = "book-service", url = "${book.api.url}")
 public interface BookServiceClient {
@@ -21,8 +22,8 @@ public interface BookServiceClient {
     @GetMapping("/api/categories/hierarchy")
     List<CategoryHierarchyDto> getCategoryHierarchy();
 
-    @PostMapping("/api/categories")
-    List<Long> getCategoryIds(@RequestBody List<Long> bookIds);
+    @PostMapping("/api/categories/ids")
+    CategoryIdsResponse getCategoryIds(@RequestBody List<Long> bookIds);
 
     @GetMapping("/api/category")
     Long getCategoryId(@RequestParam Long id);
