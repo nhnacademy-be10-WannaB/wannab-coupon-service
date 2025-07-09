@@ -65,15 +65,13 @@ public class CouponService {
                         PolicyStatus.ACTIVE)
                 .orElseThrow(() -> new CouponException(CouponErrorCode.WELCOME_COUPON_POLICY_NOT_FOUND));
 
-        if (welcomePolicy == null) {
-            throw new CouponException(CouponErrorCode.COUPON_NOT_FOUND);
+        if (welcomePolicy != null) {
+            if (couponRepository.existsByUserIdAndCouponPolicy(userId, welcomePolicy)) {
+                throw new CouponException(CouponErrorCode.COUPON_ALREADY_ISSUED);
+            }
+            saveNewCoupon(userId, welcomePolicy, "WC");
         }
 
-        if (couponRepository.existsByUserIdAndCouponPolicy(userId, welcomePolicy)) {
-            throw new CouponException(CouponErrorCode.COUPON_ALREADY_ISSUED);
-        }
-
-        saveNewCoupon(userId, welcomePolicy, "WC");
     }
 
     @Transactional
