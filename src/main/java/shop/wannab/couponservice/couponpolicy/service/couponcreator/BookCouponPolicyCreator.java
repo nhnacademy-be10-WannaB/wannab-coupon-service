@@ -32,7 +32,7 @@ public class BookCouponPolicyCreator implements CouponPolicyCreator {
             throw new CouponPolicyException(CouponPolicyErrorCode.INVALID_BOOK_ID);
         }
 
-        if (policyTargetBookRepository.findByBookId(bookId).isPresent()) {
+        if (policyTargetBookRepository.findByBookIdAndCouponPolicy_PolicyStatus(bookId,PolicyStatus.ACTIVE).isPresent()) {
             throw new CouponPolicyException(CouponPolicyErrorCode.BOOK_POLICY_ALREADY_EXISTS);
         }
 
