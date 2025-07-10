@@ -2,6 +2,7 @@ package shop.wannab.couponservice.client;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,7 +23,7 @@ public interface BookServiceClient {
     List<CategoryHierarchyDto> getCategoryHierarchy();
 
     @PostMapping("/api/categories/ids-map")
-    Map<Long, Long> getBookToCategoryMap(@RequestBody List<Long> bookIds);
+    Map<Long, Set<Long>> getBookToCategoryMap(@RequestBody List<Long> bookIds);
 
     @GetMapping("/api/categories/{bookId}/ancestor-category-ids")
     List<Long> getAncestorCategoryIds(@PathVariable("bookId") Long bookId);}

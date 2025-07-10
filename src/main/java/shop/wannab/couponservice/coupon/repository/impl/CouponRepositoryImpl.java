@@ -29,11 +29,12 @@ public class CouponRepositoryImpl implements CouponRepositoryCustom {
 
 
     @Override
-    public List<ApplicableCouponInfo> findApplicableCouponsForOrder(Long userId, Map<Long, Long> bookIdToCategoryIdMap) {
+    public List<ApplicableCouponInfo> findApplicableCouponsForOrder(
+            Long userId,
+            Map<Long, Set<Long>> bookIdToCategoryIdsMap) {
+
         List<ApplicableCouponInfo> applicableCoupons = new ArrayList<>();
 
-
-        //커스텀,웰컴,생일 쿠폰 가져오기
         List<Coupon> orderCoupons = queryFactory
                 .selectFrom(coupon)
                 .join(coupon.couponPolicy, couponPolicy).fetchJoin()
@@ -43,16 +44,13 @@ public class CouponRepositoryImpl implements CouponRepositoryCustom {
                         couponPolicy.couponType.in(CouponType.CUSTOM, CouponType.WELCOME, CouponType.BIRTHDAY)
                 )
                 .fetch();
-
         orderCoupons.forEach(c -> applicableCoupons.add(new ApplicableCouponInfo(c, null)));
 
-
-        if (bookIdToCategoryIdMap == null || bookIdToCategoryIdMap.isEmpty()) {
+        if (bookIdToCategoryIdsMap == null || bookIdToCategoryIdsMap.isEmpty()) {
             return applicableCoupons;
         }
-        Set<Long> bookIdsInCart = bookIdToCategoryIdMap.keySet();
 
-
+        Set<Long> bookIdsInCart = bookIdToCategoryIdsMap.keySet();
         List<Tuple> bookCouponResults = queryFactory
                 .select(coupon, policyTargetBook.bookId)
                 .from(coupon)
@@ -65,7 +63,6 @@ public class CouponRepositoryImpl implements CouponRepositoryCustom {
                         policyTargetBook.bookId.in(bookIdsInCart)
                 )
                 .fetch();
-
         bookCouponResults.forEach(tuple -> {
             Coupon c = tuple.get(coupon);
             Long targetBookId = tuple.get(policyTargetBook.bookId);
@@ -73,8 +70,10 @@ public class CouponRepositoryImpl implements CouponRepositoryCustom {
         });
 
 
+        Set<Long> allCategoryIdsInCart = bookIdToCategoryIdsMap.values().stream()
+                .flatMap(Set::stream)
+                .collect(Collectors.toSet());
 
-        Set<Long> categoryIdsInCart = bookIdToCategoryIdMap.values().stream().collect(Collectors.toSet());
         List<Tuple> categoryCouponResults = queryFactory
                 .select(coupon, policyTargetCategory.categoryId)
                 .from(coupon)
@@ -84,7 +83,7 @@ public class CouponRepositoryImpl implements CouponRepositoryCustom {
                         coupon.userId.eq(userId),
                         coupon.status.eq(CouponStatus.NOT_USED),
                         couponPolicy.couponType.eq(CouponType.CATEGORY),
-                        policyTargetCategory.categoryId.in(categoryIdsInCart)
+                        policyTargetCategory.categoryId.in(allCategoryIdsInCart)
                 )
                 .fetch();
 
@@ -92,8 +91,8 @@ public class CouponRepositoryImpl implements CouponRepositoryCustom {
             Coupon categoryCoupon = tuple.get(coupon);
             Long targetCategoryId = tuple.get(policyTargetCategory.categoryId);
 
-            bookIdToCategoryIdMap.entrySet().stream()
-                    .filter(entry -> entry.getValue().equals(targetCategoryId))
+            bookIdToCategoryIdsMap.entrySet().stream()
+                    .filter(entry -> entry.getValue().contains(targetCategoryId))
                     .forEach(entry -> {
                         Long targetBookId = entry.getKey();
                         applicableCoupons.add(new ApplicableCouponInfo(categoryCoupon, targetBookId));
