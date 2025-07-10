@@ -2,10 +2,11 @@ package shop.wannab.couponservice.coupon.service;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -37,6 +38,7 @@ import shop.wannab.couponservice.couponpolicy.exception.CouponPolicyErrorCode;
 import shop.wannab.couponservice.couponpolicy.exception.CouponPolicyException;
 import shop.wannab.couponservice.couponpolicy.repository.CouponPolicyRepository;
 
+@Slf4j
 @Service
 public class CouponService {
     private final CouponRepository couponRepository;
@@ -63,7 +65,8 @@ public class CouponService {
     public void issueWelcomeCouponForNewUser(Long userId) {
         CouponPolicy welcomePolicy = couponPolicyRepository.findByCouponTypeAndPolicyStatus(CouponType.WELCOME,
                         PolicyStatus.ACTIVE)
-                .orElseThrow(() -> new CouponException(CouponErrorCode.WELCOME_COUPON_POLICY_NOT_FOUND));
+                .orElse(null);
+        //new CouponException(CouponErrorCode.WELCOME_COUPON_POLICY_NOT_FOUND)) <-- 향후 활용 예정
 
         if (welcomePolicy != null) {
             if (couponRepository.existsByUserIdAndCouponPolicy(userId, welcomePolicy)) {
@@ -96,24 +99,26 @@ public class CouponService {
 
         CouponPolicy birthdayPolicy = couponPolicyRepository.findByCouponTypeAndPolicyStatus(CouponType.BIRTHDAY,
                         PolicyStatus.ACTIVE)
-                .orElseThrow(() -> new CouponPolicyException(CouponPolicyErrorCode.POLICY_NOT_FOUND));
+                .orElse(null);
+//        new CouponPolicyException(CouponPolicyErrorCode.POLICY_NOT_FOUND <-- 향후 활용 예정
 
-        if (birthdayPolicy == null) {
-            throw new CouponException(CouponErrorCode.BIRTHDAY_COUPON_POLICY_NOT_FOUND);
-        }
+        if (birthdayPolicy != null) {
+            List<Long> birthdayUserIds;
 
-        List<Long> birthdayUserIds;
-
-        try {
-            birthdayUserIds = userServiceClient.getBirthdayUserIds(month);
-        } catch (Exception e) {
-            birthdayUserIds = List.of();
-        }
-        for (Long userId : birthdayUserIds) {
             try {
-                saveNewCoupon(userId, birthdayPolicy, "BD");
-            } catch (IllegalArgumentException e) {
-                throw new CouponException(CouponErrorCode.BIRTHDAY_COUPON_ISSUE_FAILED);
+                birthdayUserIds = userServiceClient.getBirthdayUserIds(month);
+            } catch (Exception e) {
+                birthdayUserIds = List.of();
+            }
+
+            for (Long userId : birthdayUserIds) {
+                try {
+                    if (!couponRepository.existsByUserIdAndCouponPolicy(userId, birthdayPolicy)) {
+                        saveNewCoupon(userId, birthdayPolicy, "BD");
+                    }
+                } catch (Exception e) {
+                    log.error("생일 쿠폰 발급 실패 유저 아이디 : {}", userId, e);
+                }
             }
         }
     }
@@ -144,40 +149,41 @@ public class CouponService {
             Long userId,
             OrderCouponsRequestDto requestDto) {
 
-        List<Long> bookIds = requestDto.getBookIds();
-
-        Map<Long, Long> bookIdToCategoryIdMap = bookServiceClient.getBookToCategoryMap(bookIds);
+        Map<Long, Set<Long>> bookIdToCategoryIdsMap =
+                bookServiceClient.getBookToCategoryMap(requestDto.getBookIds());
 
         List<ApplicableCouponInfo> applicableCouponsInfo =
-                couponRepositoryImpl.findApplicableCouponsForOrder(userId, bookIdToCategoryIdMap);
+                couponRepositoryImpl.findApplicableCouponsForOrder(userId, bookIdToCategoryIdsMap);
 
-        Map<Long, List<BookCouponDto>> itemCoupons = new HashMap<>();
-        List<OrderCouponDto> orderCoupons = new ArrayList<>();
 
-        for (ApplicableCouponInfo info : applicableCouponsInfo) {
-            Coupon coupon = info.coupon();
-            CouponPolicy policy = coupon.getCouponPolicy();
-            Long targetBookId = info.targetBookId();
+        Map<Boolean, List<ApplicableCouponInfo>> partitionedCoupons = applicableCouponsInfo.stream()
+                .collect(Collectors.partitioningBy(info -> info.targetBookId() == null));
 
-            if (targetBookId != null) {
-                BookCouponDto bookCouponDto = new BookCouponDto(
-                        coupon.getCouponId(),
-                        policy.getCouponPolicyName(),
-                        policy.getDiscountValue(),
-                        policy.getDiscountType()
-                );
-                itemCoupons.computeIfAbsent(targetBookId, k -> new ArrayList<>()).add(bookCouponDto);
+        List<OrderCouponDto> orderCoupons = partitionedCoupons.get(true).stream()
+                .map(info -> {
+                    CouponPolicy policy = info.coupon().getCouponPolicy();
+                    return new OrderCouponDto(
+                            info.coupon().getCouponId(),
+                            policy.getCouponPolicyName(),
+                            policy.getDiscountValue(),
+                            policy.getDiscountType()
+                    );
+                })
+                .toList();
 
-            } else {
-                OrderCouponDto orderCouponDto = new OrderCouponDto(
-                        coupon.getCouponId(),
-                        policy.getCouponPolicyName(),
-                        policy.getDiscountValue(),
-                        policy.getDiscountType()
-                );
-                orderCoupons.add(orderCouponDto);
-            }
-        }
+        Map<Long, List<BookCouponDto>> itemCoupons = partitionedCoupons.get(false).stream()
+                .collect(Collectors.groupingBy(
+                        ApplicableCouponInfo::targetBookId,
+                        Collectors.mapping(info -> {
+                            CouponPolicy policy = info.coupon().getCouponPolicy();
+                            return new BookCouponDto(
+                                    info.coupon().getCouponId(),
+                                    policy.getCouponPolicyName(),
+                                    policy.getDiscountValue(),
+                                    policy.getDiscountType()
+                            );
+                        }, Collectors.toList())
+                ));
 
         return new ApplicableCouponsDto(itemCoupons, orderCoupons);
     }
