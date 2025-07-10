@@ -32,7 +32,7 @@ public class CategoryCouponPolicyCreator implements CouponPolicyCreator {
             throw new CouponPolicyException(CouponPolicyErrorCode.INVALID_CATEGORY_ID);
         }
 
-        if (policyTargetCategoryRepository.findByCategoryId(categoryId).isPresent()) {
+        if (policyTargetCategoryRepository.findByCategoryIdAndCouponPolicy_PolicyStatus(categoryId,PolicyStatus.ACTIVE).isPresent()) {
             throw new CouponPolicyException(CouponPolicyErrorCode.CATEGORY_POLICY_ALREADY_EXISTS);
         }
 
