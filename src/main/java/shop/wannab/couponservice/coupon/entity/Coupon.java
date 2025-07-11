@@ -59,6 +59,10 @@ public class Coupon {
     private Long orderBookId;
 
     public static Coupon createNewCoupon(Long userId, CouponPolicy couponPolicy,String prefix){
+        if(userId < 0){
+            return null;
+        }
+
         String couponCode = String.format("%s%s-%s",prefix,LocalDate.now().toString().replace("-",""),
                 UUID.randomUUID().toString().substring(0,20).replace("-","").toUpperCase());
 

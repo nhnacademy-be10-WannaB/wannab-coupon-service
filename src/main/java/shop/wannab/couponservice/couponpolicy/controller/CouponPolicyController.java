@@ -35,7 +35,6 @@ public class CouponPolicyController {
         return ResponseEntity.ok().build();
     }
 
-    //TODO : 엘라스틱 서치 완료되면 해당 검색기능 재활용하기
     @GetMapping
     public ResponseEntity<CouponPageDataDto> getAllCouponPolicies() {
         List<CategoryHierarchyDto> categoryHierarchyDtos = categoryService.getCategoryHierarchy();
