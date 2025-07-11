@@ -69,26 +69,26 @@ public class CouponPolicyService {
         List<Long> bookIdsToFetch = new ArrayList<>(policyToBookIdMap.values());
         List<Long> categoryIdsToFetch = new ArrayList<>(policyToCategoryIdMap.values());
 
-//  Map<Long, String> bookNamesMap = bookServiceClient.getBookNames(bookIdsToFetch);
+        Map<Long, String> bookNamesMap = bookServiceClient.getBookNames(bookIdsToFetch);
         Map<Long, String> categoryNamesMap = bookServiceClient.getCategoryNames(categoryIdsToFetch);
 
         return activePolicies.stream()
                 .map(policy -> {
                     String bookName = null;
                     String categoryName = null;
-                //TODO : 향후 엘라스틱 서치 활성화되면 활용 예정
-//              if (policy.getCouponType() == CouponType.BOOK) {
-//                  Long bookId = policyToBookIdMap.get(policy.getCouponPolicyId());
-//                  if (bookId != null) {
-//                      bookName = bookNamesMap.getOrDefault(bookId, "알 수 없는 책");
-//                  }
-//              } else
-                    if (policy.getCouponType() == CouponType.CATEGORY) {
-                        Long categoryId = policyToCategoryIdMap.get(policy.getCouponPolicyId());
-                        if (categoryId != null) {
-                            categoryName = categoryNamesMap.getOrDefault(categoryId, "알 수 없는 카테고리");
-                        }
-                    }
+              if (policy.getCouponType() == CouponType.BOOK) {
+                  Long bookId = policyToBookIdMap.get(policy.getCouponPolicyId());
+                  if (bookId != null) {
+                      bookName = bookNamesMap.getOrDefault(bookId, "알 수 없는 책");
+                  }
+              } else {
+                  if (policy.getCouponType() == CouponType.CATEGORY) {
+                      Long categoryId = policyToCategoryIdMap.get(policy.getCouponPolicyId());
+                      if (categoryId != null) {
+                          categoryName = categoryNamesMap.getOrDefault(categoryId, "알 수 없는 카테고리");
+                      }
+                  }
+              }
                     return CouponPolicyResponseDto.from(policy, bookName, categoryName);
                 })
                 .collect(Collectors.toList());
