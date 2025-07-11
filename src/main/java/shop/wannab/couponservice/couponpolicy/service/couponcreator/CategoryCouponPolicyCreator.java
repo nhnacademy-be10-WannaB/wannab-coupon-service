@@ -36,7 +36,9 @@ public class CategoryCouponPolicyCreator implements CouponPolicyCreator {
             throw new CouponPolicyException(CouponPolicyErrorCode.CATEGORY_POLICY_ALREADY_EXISTS);
         }
 
+
         CouponPolicy couponPolicy = buildBasePolicy(request);
+        couponPolicy.setValidDays(0);
         couponPolicy.setCouponType(CouponType.CATEGORY);
         CouponPolicy savedPolicy = couponPolicyRepository.save(couponPolicy);
 

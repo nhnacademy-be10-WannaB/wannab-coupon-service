@@ -37,6 +37,7 @@ public class BookCouponPolicyCreator implements CouponPolicyCreator {
         }
 
         CouponPolicy couponPolicy = buildBasePolicy(request);
+        couponPolicy.setValidDays(0);
         couponPolicy.setCouponType(CouponType.BOOK);
         CouponPolicy savedPolicy = couponPolicyRepository.save(couponPolicy);
 
