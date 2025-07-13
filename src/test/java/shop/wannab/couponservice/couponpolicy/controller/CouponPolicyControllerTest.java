@@ -5,10 +5,15 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.delete;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
+import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
+import static org.springframework.restdocs.payload.PayloadDocumentation.relaxedRequestFields;
+import static org.springframework.restdocs.payload.PayloadDocumentation.relaxedResponseFields;
+import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
+import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -17,15 +22,20 @@ import java.util.Collections;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import shop.wannab.couponservice.category.CategoryService;
+import shop.wannab.couponservice.couponpolicy.dto.CouponPageDataDto;
 import shop.wannab.couponservice.couponpolicy.dto.CreateCouponPolicyDto;
 import shop.wannab.couponservice.couponpolicy.service.CouponPolicyService;
 
-
+@ActiveProfiles("ci")
+@AutoConfigureRestDocs
+@DisplayName("CouponPolicy Controller 단위 테스트")
 @WebMvcTest(CouponPolicyController.class)
 public class CouponPolicyControllerTest {
 
@@ -51,11 +61,27 @@ public class CouponPolicyControllerTest {
         requestDto.setDiscountValue(1000);
         doNothing().when(couponPolicyService).createCouponPolicy(any(CreateCouponPolicyDto.class));
 
-        mockMvc.perform(post("/api/admin/coupon_policies") // POST 요청
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(requestDto)))
-                .andExpect(status().isOk())
-                .andDo(print());
+        mockMvc.perform(post("/api/admin/coupon_policies")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(requestDto)))
+            .andExpect(status().isOk())
+            .andDo(document("coupon-policy-create",
+                relaxedRequestFields(
+                    fieldWithPath("couponType").description("쿠폰 타입 (NORMAL, BIRTHDAY, BOOK, CATEGORY)"),
+                    fieldWithPath("targetBookId").description("적용 도서 ID").optional(),
+                    fieldWithPath("targetCategoryId").description("적용 카테고리 ID").optional(),
+                    fieldWithPath("name").description("쿠폰 정책 이름"),
+                    fieldWithPath("discountType").description("할인 타입 (FIXED, PERCENTAGE)"),
+                    fieldWithPath("minPurchase").description("최소 구매 금액").optional(),
+                    fieldWithPath("discountValue").description("할인 값"),
+                    fieldWithPath("maxDiscount").description("최대 할인 금액").optional(),
+                    fieldWithPath("validDays").description("유효 기간(일)").optional(),
+                    fieldWithPath("startDate").description("시작일").optional(),
+                    fieldWithPath("endDate").description("종료일").optional(),
+                    fieldWithPath("birthday").description("생일 쿠폰 여부").optional(),
+                    fieldWithPath("welcome").description("웰컴 쿠폰 여부").optional()
+                )
+            ));
 
         verify(couponPolicyService).createCouponPolicy(any(CreateCouponPolicyDto.class));
     }
@@ -66,11 +92,16 @@ public class CouponPolicyControllerTest {
         given(categoryService.getCategoryHierarchy()).willReturn(Collections.emptyList());
         given(couponPolicyService.getCouponPolicies()).willReturn(Collections.emptyList());
 
-        mockMvc.perform(get("/api/admin/coupon_policies")) // GET 요청
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.categoryHierarchy").isArray())
-                .andExpect(jsonPath("$.couponPolicies").isArray())
-                .andDo(print());
+        mockMvc.perform(get("/api/admin/coupon_policies"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.categoryHierarchy").isArray())
+            .andExpect(jsonPath("$.couponPolicies").isArray())
+            .andDo(document("get-all-coupon-policies",
+                relaxedResponseFields(
+                    fieldWithPath("categoryHierarchy").description("카테고리 계층 구조"),
+                    fieldWithPath("couponPolicies").description("쿠폰 정책 목록")
+                )
+            ));
     }
 
     @Test
@@ -80,8 +111,12 @@ public class CouponPolicyControllerTest {
         doNothing().when(couponPolicyService).deleteCouponPolicyById(anyLong());
 
         mockMvc.perform(delete("/api/admin/coupon_policies/{policyId}", policyId))
-                .andExpect(status().isOk())
-                .andDo(print());
+            .andExpect(status().isOk())
+            .andDo(document("delete-coupon-policy",
+                pathParameters(
+                    parameterWithName("policyId").description("삭제할 쿠폰 정책 ID")
+                )
+            ));
 
         verify(couponPolicyService).deleteCouponPolicyById(policyId);
     }
