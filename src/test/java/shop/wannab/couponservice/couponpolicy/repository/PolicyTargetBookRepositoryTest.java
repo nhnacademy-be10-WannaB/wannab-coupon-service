@@ -77,11 +77,10 @@ class PolicyTargetBookRepositoryTest {
     @Test
     @DisplayName("bookId로 PolicyTargetBook 조회 성공")
     void findByBookId_Success() {
-        Optional<PolicyTargetBook> foundTargetBook = policyTargetBookRepository.findByBookId(101L);
-
-        assertThat(foundTargetBook).isPresent();
-        assertThat(foundTargetBook.get().getBookId()).isEqualTo(101L);
-        assertThat(foundTargetBook.get().getCouponPolicy().getCouponPolicyId()).isEqualTo(activePolicy.getCouponPolicyId());
+        List<PolicyTargetBook> foundTargetBooks = policyTargetBookRepository.findByBookId(101L);
+        assertThat(foundTargetBooks).hasSize(1);
+        assertThat(foundTargetBooks.get(0).getBookId()).isEqualTo(101L);
+        assertThat(foundTargetBooks.get(0).getCouponPolicy().getCouponPolicyId()).isEqualTo(activePolicy.getCouponPolicyId());
     }
 
     @Test

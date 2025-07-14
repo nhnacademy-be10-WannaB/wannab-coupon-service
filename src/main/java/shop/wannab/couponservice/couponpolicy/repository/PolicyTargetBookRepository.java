@@ -7,7 +7,7 @@ import shop.wannab.couponservice.couponpolicy.entity.PolicyStatus;
 import shop.wannab.couponservice.couponpolicy.entity.PolicyTargetBook;
 
 public interface PolicyTargetBookRepository extends JpaRepository<PolicyTargetBook, Long> {
-    Optional<PolicyTargetBook> findByBookId(Long bookId);
+    List<PolicyTargetBook> findByBookId(Long bookId);
     List<PolicyTargetBook> findAllByCouponPolicy_CouponPolicyIdIn(List<Long> policyIds);
     Optional<PolicyTargetBook> findByBookIdAndCouponPolicy_PolicyStatus(Long bookId, PolicyStatus status);
 

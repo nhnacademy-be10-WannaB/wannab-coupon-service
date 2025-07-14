@@ -13,9 +13,12 @@ public interface CouponPolicyRepository extends JpaRepository<CouponPolicy,Long>
     Optional<CouponPolicy> findByCouponTypeAndPolicyStatus(CouponType couponType, PolicyStatus policyStatus);
     List<CouponPolicy> findByPolicyStatus(PolicyStatus status);
 
-    @Query("SELECT ptc.couponPolicy " +
-            "FROM PolicyTargetCategory ptc " +
+    @Query("SELECT cp FROM CouponPolicy cp " +
+            "JOIN PolicyTargetCategory ptc ON cp.couponPolicyId = ptc.couponPolicy.couponPolicyId " +
             "WHERE ptc.categoryId IN :categoryIds " +
-            "AND ptc.couponPolicy.policyStatus = 'ACTIVE'")
-    List<CouponPolicy> findActivePoliciesForCategoryIds(@Param("categoryIds") List<Long> categoryIds);
+            "AND cp.policyStatus = :status")
+    List<CouponPolicy> findActivePoliciesForCategoryIds(
+            @Param("categoryIds") List<Long> categoryIds,
+            @Param("status") PolicyStatus status
+    );
 }

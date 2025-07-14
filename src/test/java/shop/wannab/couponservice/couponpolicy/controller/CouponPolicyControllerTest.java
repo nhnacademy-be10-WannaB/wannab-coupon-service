@@ -1,9 +1,11 @@
 package shop.wannab.couponservice.couponpolicy.controller;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.delete;
@@ -29,7 +31,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import shop.wannab.couponservice.category.CategoryService;
-import shop.wannab.couponservice.couponpolicy.dto.CouponPageDataDto;
+import shop.wannab.couponservice.coupon.service.CouponService;
 import shop.wannab.couponservice.couponpolicy.dto.CreateCouponPolicyDto;
 import shop.wannab.couponservice.couponpolicy.service.CouponPolicyService;
 
@@ -47,6 +49,9 @@ public class CouponPolicyControllerTest {
 
     @MockBean
     private CouponPolicyService couponPolicyService;
+
+    @MockBean
+    private CouponService couponService;
 
     @MockBean
     private CategoryService categoryService;
@@ -119,5 +124,17 @@ public class CouponPolicyControllerTest {
             ));
 
         verify(couponPolicyService).deleteCouponPolicyById(policyId);
+    }
+
+    @Test
+    @DisplayName("생일 쿠폰 발급 요청 성공")
+    void issueBirthdayCoupon_Success() throws Exception {
+        doNothing().when(couponService).issueBirthdayCoupon(anyInt());
+
+        mockMvc.perform(post("/api/admin/coupon_policies/issue-birthday")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
+        verify(couponService, times(1)).issueBirthdayCoupon(anyInt());
     }
 }

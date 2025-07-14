@@ -119,7 +119,7 @@ class CouponPolicyRepositoryTest {
                 .build();
         entityManager.persist(activeCategoryPolicy);
         List<Long> searchCategoryIds = List.of(electronicsId, 999L);
-        List<CouponPolicy> foundPolicies = couponPolicyRepository.findActivePoliciesForCategoryIds(searchCategoryIds);
+        List<CouponPolicy> foundPolicies = couponPolicyRepository.findActivePoliciesForCategoryIds(searchCategoryIds, PolicyStatus.ACTIVE);
 
         assertThat(foundPolicies).isEmpty();
     }

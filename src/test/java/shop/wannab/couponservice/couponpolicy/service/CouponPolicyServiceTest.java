@@ -1,7 +1,9 @@
 package shop.wannab.couponservice.couponpolicy.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -231,19 +233,19 @@ public class CouponPolicyServiceTest {
 
         CouponPolicy bookPolicy = new CouponPolicy(
                 1L, "책 전용 쿠폰", CouponType.BOOK, DiscountType.FIXED,
-                3000, 0, 0, 0, LocalDate.now().minusDays(10), LocalDate.now().plusDays(10), // 유효 기간 내
+                3000, 0, 0, 0, null, null,
                 PolicyStatus.ACTIVE);
         PolicyTargetBook targetBook = new PolicyTargetBook(1L,bookId, bookPolicy);
+        when(policyTargetBookRepository.findByBookId(bookId)).thenReturn(List.of(targetBook));
 
         CouponPolicy categoryPolicy = new CouponPolicy(
                 2L, "IT 카테고리 쿠폰", CouponType.CATEGORY, DiscountType.PERCENT,
-                10, 0, 0, 0, LocalDate.now().minusDays(10), LocalDate.now().plusDays(10),
+                10, 0, 0, 0, null, null,
                 PolicyStatus.ACTIVE);
         List<CouponPolicy> categoryPolicies = List.of(categoryPolicy);
 
-        when(policyTargetBookRepository.findByBookId(bookId)).thenReturn(Optional.of(targetBook));
         when(bookServiceClient.getAncestorCategoryIds(bookId)).thenReturn(categoryIds);
-        when(couponPolicyRepository.findActivePoliciesForCategoryIds(categoryIds)).thenReturn(categoryPolicies);
+        when(couponPolicyRepository.findActivePoliciesForCategoryIds(anyList(), any(PolicyStatus.class))).thenReturn(categoryPolicies);
 
 
         List<IssuableCouponPolicyDto> result = couponPolicyService.findIssuablePoliciesForBook(bookId);
@@ -255,6 +257,8 @@ public class CouponPolicyServiceTest {
                 .map(IssuableCouponPolicyDto::getCouponPolicyId)
                 .collect(Collectors.toList());
         assertThat(resultPolicyIds).containsExactlyInAnyOrder(1L, 2L);
+
+        verify(policyTargetBookRepository, times(1)).findByBookId(bookId);
     }
 
     @Test
@@ -263,25 +267,29 @@ public class CouponPolicyServiceTest {
         Long bookId = 101L;
         List<Long> categoryIds = List.of(10L, 1L);
 
-        CouponPolicy expiredBookPolicy = new CouponPolicy(
-                1L, "만료된 책 쿠폰", CouponType.BOOK, DiscountType.FIXED,
-                3000, 0, 0, 0, LocalDate.now().minusDays(20), LocalDate.now().minusDays(1), // 과거 날짜
-                PolicyStatus.ACTIVE);
-        PolicyTargetBook targetBook = new PolicyTargetBook(1L,bookId, expiredBookPolicy);
+        CouponPolicy inactiveBookPolicy = new CouponPolicy(
+                1L, "비활성 책 쿠폰", CouponType.BOOK, DiscountType.FIXED,
+                3000, 0, 0, 0, null, null,
+                PolicyStatus.DELETED);
+
+        PolicyTargetBook targetBook = new PolicyTargetBook(1L,bookId, inactiveBookPolicy);
+        when(policyTargetBookRepository.findByBookId(bookId)).thenReturn(List.of(targetBook));
+
 
         CouponPolicy categoryCouponPolicy = new CouponPolicy(
                 2L, "카테고리 쿠폰", CouponType.CATEGORY, DiscountType.FIXED,
-                3000, 0, 0, 0, LocalDate.of(2025, 7, 1), LocalDate.of(2025, 7, 31),
+                3000, 0, 0, 0, null, null,
                 PolicyStatus.ACTIVE);
 
-        when(policyTargetBookRepository.findByBookId(bookId)).thenReturn(Optional.of(targetBook));
         when(bookServiceClient.getAncestorCategoryIds(bookId)).thenReturn(categoryIds);
-        when(couponPolicyRepository.findActivePoliciesForCategoryIds(categoryIds)).thenReturn(List.of(categoryCouponPolicy));
+        when(couponPolicyRepository.findActivePoliciesForCategoryIds(anyList(), any(PolicyStatus.class))).thenReturn(List.of(categoryCouponPolicy));
 
         List<IssuableCouponPolicyDto> result = couponPolicyService.findIssuablePoliciesForBook(bookId);
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getCouponPolicyId()).isEqualTo(2L);
+
+        verify(policyTargetBookRepository, times(1)).findByBookId(bookId);
     }
 
     @Test
@@ -289,7 +297,7 @@ public class CouponPolicyServiceTest {
     void findIssuablePoliciesForBook_WhenCategoryListIsEmpty() {
         Long bookId = 101L;
 
-        when(policyTargetBookRepository.findByBookId(bookId)).thenReturn(Optional.empty());
+        when(policyTargetBookRepository.findByBookId(bookId)).thenReturn(Collections.emptyList());
 
         when(bookServiceClient.getAncestorCategoryIds(bookId)).thenReturn(Collections.emptyList());
 
@@ -297,7 +305,7 @@ public class CouponPolicyServiceTest {
 
         assertThat(result).isEmpty();
 
-        verify(couponPolicyRepository, never()).findActivePoliciesForCategoryIds(anyList());
+        verify(couponPolicyRepository, never()).findActivePoliciesForCategoryIds(anyList(),eq(PolicyStatus.ACTIVE));
     }
 
     @Test
@@ -305,7 +313,7 @@ public class CouponPolicyServiceTest {
     void findIssuablePoliciesForBook_WhenCategoryListIsNull() {
         Long bookId = 101L;
 
-        when(policyTargetBookRepository.findByBookId(bookId)).thenReturn(Optional.empty());
+        when(policyTargetBookRepository.findByBookId(bookId)).thenReturn((Collections.emptyList()));
 
         when(bookServiceClient.getAncestorCategoryIds(bookId)).thenReturn(null);
 
@@ -313,7 +321,7 @@ public class CouponPolicyServiceTest {
 
         assertThat(result).isEmpty();
 
-        verify(couponPolicyRepository, never()).findActivePoliciesForCategoryIds(anyList());
+        verify(couponPolicyRepository, never()).findActivePoliciesForCategoryIds(anyList(),eq(PolicyStatus.ACTIVE));
     }
 
 }
