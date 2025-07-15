@@ -12,7 +12,7 @@ import lombok.Setter;
 public class CouponUsageRequestDto {
 
     private Long orderId;
-
+    private Long userId;
     // 사용된 쿠폰 목록
     private List<UsedCouponInfo> usedCoupons;
 

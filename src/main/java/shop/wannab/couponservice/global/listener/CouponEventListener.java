@@ -24,8 +24,9 @@ public class CouponEventListener {
         }
     }
 
-    @RabbitListener(queues = "wannab.order.created.coupon.queue")
-    public void handleOrderCreatedEvent(Long userId, CouponUsageRequestDto requestDto){
+    @RabbitListener(queues = "wannab.order.created.coupon.queue", containerFactory = "rabbitListenerContainerFactory")
+    public void handleOrderCreatedEvent(CouponUsageRequestDto requestDto){
+        long userId = requestDto.getUserId();
         log.info("주문 적용 쿠폰 이벤트 수신, 유저 ID: {}",userId);
         try{
             couponService.processUsedCoupons(userId, requestDto);
