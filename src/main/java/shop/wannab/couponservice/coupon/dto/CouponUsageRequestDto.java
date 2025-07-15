@@ -1,11 +1,14 @@
 package shop.wannab.couponservice.coupon.dto;
 
 import java.util.List;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
+@NoArgsConstructor
 public class CouponUsageRequestDto {
 
     private Long orderId;
@@ -15,6 +18,7 @@ public class CouponUsageRequestDto {
 
     @Getter
     @Setter
+    @AllArgsConstructor
     public static class UsedCouponInfo {
         private Long couponId;
 
