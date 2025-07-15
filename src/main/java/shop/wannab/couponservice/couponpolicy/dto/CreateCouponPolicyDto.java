@@ -3,10 +3,12 @@ package shop.wannab.couponservice.couponpolicy.dto;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
+@NoArgsConstructor
 public class CreateCouponPolicyDto {
     //쿠폰 등록 모달 참조
     @NotNull

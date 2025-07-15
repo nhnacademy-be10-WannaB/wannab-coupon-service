@@ -34,7 +34,7 @@ public class CouponController {
 
     @PostMapping("/issue/welcome")
     public ResponseEntity<String> issueWelcomeCouponForNewUser(
-            @RequestParam Long userId) {
+            @RequestParam("userId") Long userId) {
         try {
             couponService.issueWelcomeCouponForNewUser(userId);
             return ResponseEntity.ok("웰컴 쿠폰이 성공적으로 발급되었습니다.");
@@ -46,7 +46,7 @@ public class CouponController {
     @PostMapping("/issue/custom")
     public ResponseEntity<String> issueCustomCoupon(
             @RequestHeader("X-USER-ID") Long userId,
-            @RequestParam Long couponPolicyId){
+            @RequestParam("couponPolicyId") Long couponPolicyId){
         couponService.issueGeneralCoupon(userId, couponPolicyId);
         return ResponseEntity.ok("쿠폰이 성공적으로 발급되었습니다.");
     }

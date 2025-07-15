@@ -1,6 +1,5 @@
 package shop.wannab.couponservice.couponpolicy.service;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -109,15 +108,18 @@ public class CouponPolicyService {
         Set<CouponPolicy> finalPolicies = new HashSet<>();
 
         policyTargetBookRepository.findByBookId(bookId)
+                .stream()
                 .map(PolicyTargetBook::getCouponPolicy)
-                .filter(policy -> policy.getFixedEndDate().isAfter(LocalDate.now()))
-                .ifPresent(finalPolicies::add);
-
+                .filter(policy -> policy.getPolicyStatus() == PolicyStatus.ACTIVE)
+                .forEach(finalPolicies::add);
 
         List<Long> categoryIds = bookServiceClient.getAncestorCategoryIds(bookId);
 
         if (categoryIds != null && !categoryIds.isEmpty()) {
-            List<CouponPolicy> categoryPolicies = couponPolicyRepository.findActivePoliciesForCategoryIds(categoryIds);
+            List<CouponPolicy> categoryPolicies = couponPolicyRepository.findActivePoliciesForCategoryIds(
+                    categoryIds,
+                    PolicyStatus.ACTIVE
+            );
             finalPolicies.addAll(categoryPolicies);
         }
 

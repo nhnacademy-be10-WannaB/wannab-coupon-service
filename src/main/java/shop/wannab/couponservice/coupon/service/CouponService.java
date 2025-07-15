@@ -95,7 +95,7 @@ public class CouponService {
 
     @Transactional
     public void issueBirthdayCoupon(int month) {
-        System.out.println("생일 쿠폰 발급 로직 시작 (월: " + month + ")");
+        log.info("생일 쿠폰 발급 로직 시작 {}월",month);
 
         CouponPolicy birthdayPolicy = couponPolicyRepository.findByCouponTypeAndPolicyStatus(CouponType.BIRTHDAY,
                         PolicyStatus.ACTIVE)
