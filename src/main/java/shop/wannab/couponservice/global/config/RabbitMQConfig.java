@@ -1,24 +1,19 @@
 package shop.wannab.couponservice.global.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.amqp.core.Queue;
-import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import java.util.HashMap;
+import java.util.Map;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.listener.ConditionalRejectingErrorHandler;
 import org.springframework.amqp.support.converter.DefaultJackson2JavaTypeMapper;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.HashMap;
-import java.util.Map;
-
 @Configuration
 public class RabbitMQConfig {
-
-    private static final String WELCOME_COUPON_QUEUE_NAME = "wannab.welcome.coupon.queue";
-    private static final String ORDER_CREATED_COUPON_QUEUE = "wannab.order.created.coupon.queue";
-
     @Bean
     public MessageConverter messageConverter(ObjectMapper objectMapper) {
         Jackson2JsonMessageConverter converter = new Jackson2JsonMessageConverter(objectMapper);
@@ -43,18 +38,9 @@ public class RabbitMQConfig {
     ) {
         SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
         factory.setConnectionFactory(connectionFactory);
-        factory.setMessageConverter(messageConverter);
+        factory.setMessageConverter(messageConverter);//
+        factory.setErrorHandler(new ConditionalRejectingErrorHandler());
         return factory;
-    }
-
-    @Bean
-    public Queue welcomeQueue() {
-        return new Queue(WELCOME_COUPON_QUEUE_NAME);
-    }
-
-    @Bean
-    public Queue orderCreatedQueue() {
-        return new Queue(ORDER_CREATED_COUPON_QUEUE);
     }
 }
 
