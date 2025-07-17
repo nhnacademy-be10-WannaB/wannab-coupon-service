@@ -26,7 +26,7 @@ class CouponEventListenerTest {
     void handleUserSignedUpEvent_Success() {
         Long userId = 1L;
 
-        couponEventListener.handleUserSignedUpEvent(userId);
+        couponEventListener.handleUserSignedUpEvent(String.valueOf(userId));
 
         verify(couponService, times(1)).issueWelcomeCouponForNewUser(userId);
     }
@@ -34,12 +34,12 @@ class CouponEventListenerTest {
     @Test
     @DisplayName("웰컴 쿠폰 발급 중 예외 발생 시에도 이벤트 리스너는 정상 종료")
     void handleUserSignedUpEvent_GracefulFailure() {
-        Long userId = 1L;
+        String userId = "1";
         doThrow(new RuntimeException("Test Exception"))
-            .when(couponService).issueWelcomeCouponForNewUser(userId);
+            .when(couponService).issueWelcomeCouponForNewUser(Long.parseLong(userId));
 
         couponEventListener.handleUserSignedUpEvent(userId);
 
-        verify(couponService, times(1)).issueWelcomeCouponForNewUser(userId);
+        verify(couponService, times(1)).issueWelcomeCouponForNewUser(Long.parseLong(userId));
     }
 }
