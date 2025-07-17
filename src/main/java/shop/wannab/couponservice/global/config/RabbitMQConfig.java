@@ -17,7 +17,7 @@ import java.util.Map;
 public class RabbitMQConfig {
 
     private static final String WELCOME_COUPON_QUEUE_NAME = "wannab.welcome.coupon.queue";
-    private static final String ORDER_CREATED_COUPON_QUEUE = "wannab.order.created.coupon.queue";
+    //private static final String ORDER_CREATED_COUPON_QUEUE = "wannab.order.created.coupon.queue";
 
     @Bean
     public MessageConverter messageConverter(ObjectMapper objectMapper) {
@@ -52,9 +52,9 @@ public class RabbitMQConfig {
         return new Queue(WELCOME_COUPON_QUEUE_NAME);
     }
 
-    @Bean
-    public Queue orderCreatedQueue() {
-        return new Queue(ORDER_CREATED_COUPON_QUEUE);
-    }
+//    @Bean
+//    public Queue orderCreatedQueue() {
+//        return new Queue(ORDER_CREATED_COUPON_QUEUE);
+//    }
 }
 
