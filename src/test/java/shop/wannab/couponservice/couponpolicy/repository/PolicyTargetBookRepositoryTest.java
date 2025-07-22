@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 import shop.wannab.couponservice.couponpolicy.entity.CouponPolicy;
 import shop.wannab.couponservice.couponpolicy.entity.CouponType;
 import shop.wannab.couponservice.couponpolicy.entity.DiscountType;
@@ -19,6 +20,7 @@ import shop.wannab.couponservice.couponpolicy.entity.PolicyStatus;
 import shop.wannab.couponservice.couponpolicy.entity.PolicyTargetBook;
 import shop.wannab.couponservice.global.config.AppConfig;
 
+@ActiveProfiles("ci")
 @DataJpaTest
 @Import(AppConfig.class)
 class PolicyTargetBookRepositoryTest {
