@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 import shop.wannab.couponservice.coupon.dto.ApplicableCouponInfo;
 import shop.wannab.couponservice.coupon.entity.Coupon;
 import shop.wannab.couponservice.coupon.entity.CouponStatus;
@@ -28,6 +29,7 @@ import shop.wannab.couponservice.couponpolicy.repository.PolicyTargetBookReposit
 import shop.wannab.couponservice.couponpolicy.repository.PolicyTargetCategoryRepository;
 import shop.wannab.couponservice.global.config.AppConfig;
 
+@ActiveProfiles("ci")
 @DataJpaTest
 @Import({CouponRepositoryImpl.class, AppConfig.class})
 class CouponRepositoryImplTest {

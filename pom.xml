@@ -206,6 +206,11 @@
 						<configuration>
 							<backend>html</backend>
 							<doctype>book</doctype>
+							<attributes>
+								<snippets>${project.build.directory}/generated-snippets</snippets>
+							</attributes>
+							<sourceDirectory>src/docs/asciidoc</sourceDirectory>
+							<outputDirectory>${project.build.directory}/generated-docs</outputDirectory>
 						</configuration>
 					</execution>
 				</executions>
