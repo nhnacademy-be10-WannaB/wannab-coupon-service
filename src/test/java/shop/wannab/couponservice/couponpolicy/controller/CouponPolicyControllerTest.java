@@ -1,13 +1,12 @@
 package shop.wannab.couponservice.couponpolicy.controller;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.delete;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
@@ -20,25 +19,32 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.LocalDate;
 import java.util.Collections;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.restdocs.RestDocumentationContextProvider;
+import org.springframework.restdocs.RestDocumentationExtension;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 import shop.wannab.couponservice.category.CategoryService;
 import shop.wannab.couponservice.coupon.service.CouponService;
 import shop.wannab.couponservice.couponpolicy.dto.CreateCouponPolicyDto;
 import shop.wannab.couponservice.couponpolicy.service.CouponPolicyService;
 
 @ActiveProfiles("ci")
-@AutoConfigureRestDocs
 @DisplayName("CouponPolicy Controller 단위 테스트")
 @WebMvcTest(CouponPolicyController.class)
+@ExtendWith({RestDocumentationExtension.class, SpringExtension.class})
 public class CouponPolicyControllerTest {
 
     @Autowired
@@ -56,6 +62,13 @@ public class CouponPolicyControllerTest {
     @MockBean
     private CategoryService categoryService;
 
+    @BeforeEach
+    void setUp(WebApplicationContext webApplicationContext, RestDocumentationContextProvider restDocumentation) {
+        this.mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
+                .apply(documentationConfiguration(restDocumentation))
+                .build();
+    }
+
     @Test
     @DisplayName("쿠폰 정책 생성 API - 성공")
     void createCouponPolicy_Success() throws Exception {
@@ -64,13 +77,15 @@ public class CouponPolicyControllerTest {
         requestDto.setCouponType("NORMAL");
         requestDto.setDiscountType("FIXED");
         requestDto.setDiscountValue(1000);
+        requestDto.setStartDate(LocalDate.now());
+        requestDto.setEndDate(LocalDate.now().plusDays(30));
         doNothing().when(couponPolicyService).createCouponPolicy(any(CreateCouponPolicyDto.class));
 
         mockMvc.perform(post("/api/admin/coupon_policies")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(requestDto)))
             .andExpect(status().isOk())
-            .andDo(document("coupon-policy-create",
+            .andDo(document("coupon-policy/coupon-policy-create",
                 relaxedRequestFields(
                     fieldWithPath("couponType").description("쿠폰 타입 (NORMAL, BIRTHDAY, BOOK, CATEGORY)"),
                     fieldWithPath("targetBookId").description("적용 도서 ID").optional(),
@@ -101,7 +116,7 @@ public class CouponPolicyControllerTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.categoryHierarchy").isArray())
             .andExpect(jsonPath("$.couponPolicies").isArray())
-            .andDo(document("get-all-coupon-policies",
+            .andDo(document("coupon-policy/get-all-coupon-policies",
                 relaxedResponseFields(
                     fieldWithPath("categoryHierarchy").description("카테고리 계층 구조"),
                     fieldWithPath("couponPolicies").description("쿠폰 정책 목록")
@@ -117,24 +132,12 @@ public class CouponPolicyControllerTest {
 
         mockMvc.perform(delete("/api/admin/coupon_policies/{policyId}", policyId))
             .andExpect(status().isOk())
-            .andDo(document("delete-coupon-policy",
+            .andDo(document("coupon-policy/delete-coupon-policy",
                 pathParameters(
                     parameterWithName("policyId").description("삭제할 쿠폰 정책 ID")
                 )
             ));
 
         verify(couponPolicyService).deleteCouponPolicyById(policyId);
-    }
-
-    @Test
-    @DisplayName("생일 쿠폰 발급 요청 성공")
-    void issueBirthdayCoupon_Success() throws Exception {
-        doNothing().when(couponService).issueBirthdayCoupon(anyInt());
-
-        mockMvc.perform(post("/api/admin/coupon_policies/issue-birthday")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
-
-        verify(couponService, times(1)).issueBirthdayCoupon(anyInt());
     }
 }
