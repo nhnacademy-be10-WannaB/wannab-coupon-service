@@ -43,6 +43,18 @@ public class CouponController {
         }
     }
 
+    @PostMapping("/issue/birthday")
+    public ResponseEntity<String> issueBirthdayCouponsManually(
+            @RequestParam("month") int month) {
+        try {
+            couponService.issueBirthdayCoupon(month);
+            return ResponseEntity.ok(month + "월 생일 쿠폰이 성공적으로 발급되었습니다.");
+        } catch (Exception e) {
+            // 적절한 예외 처리 및 로깅을 추가하는 것이 좋습니다.
+            return ResponseEntity.internalServerError().body("생일 쿠폰 발급 실패: " + e.getMessage());
+        }
+    }
+
     @PostMapping("/issue/custom")
     public ResponseEntity<String> issueCustomCoupon(
             @RequestHeader("X-USER-ID") Long userId,
