@@ -1,12 +1,15 @@
 package shop.wannab.couponservice.couponpolicy.service;
 
+import feign.FeignException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import shop.wannab.couponservice.category.CategoryService;
@@ -26,6 +29,7 @@ import shop.wannab.couponservice.couponpolicy.repository.PolicyTargetCategoryRep
 import shop.wannab.couponservice.couponpolicy.service.couponcreator.CouponPolicyCreator;
 import shop.wannab.couponservice.couponpolicy.service.couponcreator.CouponPolicyCreatorFactory;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CouponPolicyService {
@@ -38,10 +42,14 @@ public class CouponPolicyService {
     private final CouponPolicyCreatorFactory couponPolicyCreatorFactory;
 
     @Transactional
-    public void createCouponPolicy(CreateCouponPolicyDto request) {
+    public void createCouponPolicy(CreateCouponPolicyDto request,long adminId) {
         CouponPolicyCreator creator = couponPolicyCreatorFactory.findCreator(request.getCouponType());
 
         creator.createCouponPolicy(request);
+
+        log.info("action=createCouponPolicy,"
+                + "adminId={},"
+                + "message=\"생성된 쿠폰 정책 이름 : {}\"",adminId,request.getName());
     }
 
 
@@ -59,35 +67,55 @@ public class CouponPolicyService {
 
         Map<Long, Long> policyToBookIdMap = policyTargetBookRepository.findAllByCouponPolicy_CouponPolicyIdIn(policyIds)
                 .stream()
-                .collect(Collectors.toMap(ptb -> ptb.getCouponPolicy().getCouponPolicyId(), PolicyTargetBook::getBookId));
+                .collect(Collectors.toMap(ptb -> ptb.getCouponPolicy().getCouponPolicyId(),
+                        PolicyTargetBook::getBookId));
 
-        Map<Long, Long> policyToCategoryIdMap = policyTargetCategoryRepository.findAllByCouponPolicy_CouponPolicyIdIn(policyIds)
+        Map<Long, Long> policyToCategoryIdMap = policyTargetCategoryRepository.findAllByCouponPolicy_CouponPolicyIdIn(
+                        policyIds)
                 .stream()
-                .collect(Collectors.toMap(ptc -> ptc.getCouponPolicy().getCouponPolicyId(), PolicyTargetCategory::getCategoryId));
+                .collect(Collectors.toMap(ptc -> ptc.getCouponPolicy().getCouponPolicyId(),
+                        PolicyTargetCategory::getCategoryId));
 
         List<Long> bookIdsToFetch = new ArrayList<>(policyToBookIdMap.values());
         List<Long> categoryIdsToFetch = new ArrayList<>(policyToCategoryIdMap.values());
 
-        Map<Long, String> bookNamesMap = bookServiceClient.getBookNames(bookIdsToFetch);
-        Map<Long, String> categoryNamesMap = bookServiceClient.getCategoryNames(categoryIdsToFetch);
+        Map<Long, String> bookNamesMap = new HashMap<>();
+        Map<Long, String> categoryNamesMap = new HashMap<>();
+        try {
+            bookNamesMap = bookServiceClient.getBookNames(bookIdsToFetch);
+            categoryNamesMap = bookServiceClient.getCategoryNames(categoryIdsToFetch);
 
+            log.debug("action=getCouponPolicies,"
+                    + " target=BookServiceClient,"
+                    + " method=getBookNames,"
+                    + " bookNamesFetchedCount={},"
+                    + " categoryNamesFetchedCount={},"
+                    + " message=\"BookServiceClient 응답 수신.\"", categoryNamesMap.size(), bookNamesMap.size());
+        } catch (FeignException e) {
+            log.error("action=getCouponPolicies,"
+                    + " target=BookServiceClient,"
+                    + " method=getBookNames,"
+                    + "message=\"BookServiceClient 수신 오류.\"");
+        }
+        Map<Long, String> finalBookNamesMap = bookNamesMap;
+        Map<Long, String> finalCategoryNamesMap = categoryNamesMap;
         return activePolicies.stream()
                 .map(policy -> {
                     String bookName = null;
                     String categoryName = null;
-              if (policy.getCouponType() == CouponType.BOOK) {
-                  Long bookId = policyToBookIdMap.get(policy.getCouponPolicyId());
-                  if (bookId != null) {
-                      bookName = bookNamesMap.getOrDefault(bookId, "알 수 없는 책");
-                  }
-              } else {
-                  if (policy.getCouponType() == CouponType.CATEGORY) {
-                      Long categoryId = policyToCategoryIdMap.get(policy.getCouponPolicyId());
-                      if (categoryId != null) {
-                          categoryName = categoryNamesMap.getOrDefault(categoryId, "알 수 없는 카테고리");
-                      }
-                  }
-              }
+                    if (policy.getCouponType() == CouponType.BOOK) {
+                        Long bookId = policyToBookIdMap.get(policy.getCouponPolicyId());
+                        if (bookId != null) {
+                            bookName = finalBookNamesMap.getOrDefault(bookId, "알 수 없는 책");
+                        }
+                    } else {
+                        if (policy.getCouponType() == CouponType.CATEGORY) {
+                            Long categoryId = policyToCategoryIdMap.get(policy.getCouponPolicyId());
+                            if (categoryId != null) {
+                                categoryName = finalCategoryNamesMap.getOrDefault(categoryId, "알 수 없는 카테고리");
+                            }
+                        }
+                    }
                     return CouponPolicyResponseDto.from(policy, bookName, categoryName);
                 })
                 .collect(Collectors.toList());
@@ -96,10 +124,13 @@ public class CouponPolicyService {
 
     //DB상에서 진짜 삭제는 아니고 논리적 삭제(회원이 쿠폰 내역을 확인 할 때 데이터 자체를 삭제하면 문제가 될 수 있으므로 삭제 상태로 변경)
     @Transactional
-    public void deleteCouponPolicyById(long policyId) {
+    public void deleteCouponPolicyById(long policyId,long adminId) {
         CouponPolicy couponPolicy = couponPolicyRepository.findById(policyId).orElse(null);
         couponPolicy.setPolicyStatus(PolicyStatus.DELETED);
         couponPolicyRepository.save(couponPolicy);
+        log.info("action=deleteCouponPolicyById,"
+                + "adminId={},"
+                + "message=\"삭제된 쿠폰 정책 이름 : {}\"",adminId,couponPolicy.getCouponPolicyName());
     }
 
 
@@ -122,6 +153,9 @@ public class CouponPolicyService {
             );
             finalPolicies.addAll(categoryPolicies);
         }
+        log.info("action=findIssuablePoliciesForBook,"
+                + "finalPoliciesCount={},"
+                + "message=\"발급 가능 쿠폰 조회\"",finalPolicies.size());
 
         return finalPolicies.stream()
                 .map(IssuableCouponPolicyDto::new)

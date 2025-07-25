@@ -1,6 +1,7 @@
 package shop.wannab.couponservice.coupon.controller;
 
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,14 +24,11 @@ import shop.wannab.couponservice.couponpolicy.service.CouponPolicyService;
 
 @RestController
 @RequestMapping("/api/coupons")
+@RequiredArgsConstructor
 public class CouponController {
     private final CouponService couponService;
     private final CouponPolicyService couponPolicyService;
 
-    public CouponController(CouponService couponService, CouponPolicyService couponPolicyService) {
-        this.couponService = couponService;
-        this.couponPolicyService = couponPolicyService;
-    }
 
     @PostMapping("/issue/welcome")
     public ResponseEntity<String> issueWelcomeCouponForNewUser(
@@ -50,7 +48,6 @@ public class CouponController {
             couponService.issueBirthdayCoupon(month);
             return ResponseEntity.ok(month + "월 생일 쿠폰이 성공적으로 발급되었습니다.");
         } catch (Exception e) {
-            // 적절한 예외 처리 및 로깅을 추가하는 것이 좋습니다.
             return ResponseEntity.internalServerError().body("생일 쿠폰 발급 실패: " + e.getMessage());
         }
     }
@@ -75,10 +72,8 @@ public class CouponController {
             @RequestHeader("X-USER-ID") Long userId,
             Pageable pageable) {
 
-        // 자신의 서비스 로직을 호출하여 결과를 가져옵니다.
         PageResponseDto<CouponResponseToUserDto> couponPage = couponService.getUserCoupons(userId, pageable);
 
-        // 결과를 HTTP 응답 바디에 담아 반환합니다.
         return ResponseEntity.ok(couponPage);
     }
 
