@@ -67,7 +67,7 @@ import shop.wannab.couponservice.couponpolicy.service.CouponPolicyService;
 @DisplayName("Coupon Controller 단위 테스트")
 @WebMvcTest(CouponController.class)
 @ExtendWith({RestDocumentationExtension.class, SpringExtension.class})
-public class CouponControllerTest {
+class CouponControllerTest {
 
     @Autowired private MockMvc mockMvc;
     @Autowired private ObjectMapper objectMapper;

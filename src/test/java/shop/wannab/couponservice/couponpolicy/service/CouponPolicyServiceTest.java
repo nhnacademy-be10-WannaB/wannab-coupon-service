@@ -16,7 +16,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,7 +41,7 @@ import shop.wannab.couponservice.couponpolicy.service.couponcreator.CouponPolicy
 import shop.wannab.couponservice.couponpolicy.service.couponcreator.CouponPolicyCreatorFactory;
 
 @ExtendWith(MockitoExtension.class)
-public class CouponPolicyServiceTest {
+class CouponPolicyServiceTest {
 
     @Mock
     private CouponPolicyCreatorFactory couponPolicyCreatorFactory;
@@ -256,7 +255,7 @@ public class CouponPolicyServiceTest {
 
         List<Long> resultPolicyIds = result.stream()
                 .map(IssuableCouponPolicyDto::getCouponPolicyId)
-                .collect(Collectors.toList());
+                .toList();
         assertThat(resultPolicyIds).containsExactlyInAnyOrder(1L, 2L);
 
         verify(policyTargetBookRepository, times(1)).findByBookId(bookId);

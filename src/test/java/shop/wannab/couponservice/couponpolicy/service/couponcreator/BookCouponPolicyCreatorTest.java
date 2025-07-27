@@ -27,7 +27,7 @@ import shop.wannab.couponservice.couponpolicy.repository.PolicyTargetBookReposit
 
 
 @ExtendWith(MockitoExtension.class)
-public class BookCouponPolicyCreatorTest {
+class BookCouponPolicyCreatorTest {
 
     @Mock
     private CouponPolicyRepository couponPolicyRepository;

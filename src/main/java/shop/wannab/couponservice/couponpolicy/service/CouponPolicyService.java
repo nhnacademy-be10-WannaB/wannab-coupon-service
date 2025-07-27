@@ -63,7 +63,7 @@ public class CouponPolicyService {
 
         List<Long> policyIds = activePolicies.stream()
                 .map(CouponPolicy::getCouponPolicyId)
-                .collect(Collectors.toList());
+                .toList();
 
         Map<Long, Long> policyToBookIdMap = policyTargetBookRepository.findAllByCouponPolicy_CouponPolicyIdIn(policyIds)
                 .stream()
@@ -118,7 +118,7 @@ public class CouponPolicyService {
                     }
                     return CouponPolicyResponseDto.from(policy, bookName, categoryName);
                 })
-                .collect(Collectors.toList());
+                .toList();
     }
 
 
@@ -159,6 +159,6 @@ public class CouponPolicyService {
 
         return finalPolicies.stream()
                 .map(IssuableCouponPolicyDto::new)
-                .collect(Collectors.toList());
+                .toList();
     }
 }

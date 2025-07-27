@@ -108,8 +108,6 @@ class CouponPolicyRepositoryTest {
     @DisplayName("카테고리 ID 목록으로 활성 상태인 쿠폰 정책 조회")
     void findActivePoliciesForCategoryIds() {
         long electronicsId = 1L;
-        long booksId = 2L;
-        long inactiveCategoryId = 3L;
         CouponPolicy activeCategoryPolicy = CouponPolicy.builder()
                 .couponPolicyName("카테고리 활성 정책")
                 .couponType(CouponType.WELCOME)
