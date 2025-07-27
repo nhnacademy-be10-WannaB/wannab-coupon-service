@@ -16,7 +16,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,7 +41,7 @@ import shop.wannab.couponservice.couponpolicy.service.couponcreator.CouponPolicy
 import shop.wannab.couponservice.couponpolicy.service.couponcreator.CouponPolicyCreatorFactory;
 
 @ExtendWith(MockitoExtension.class)
-public class CouponPolicyServiceTest {
+class CouponPolicyServiceTest {
 
     @Mock
     private CouponPolicyCreatorFactory couponPolicyCreatorFactory;
@@ -65,6 +64,7 @@ public class CouponPolicyServiceTest {
     @Test
     @DisplayName("일반 쿠폰 정책 생성 요청 시 적절한 Creator를 찾아 로직을 실행")
     void createWelcomeCouponPolicyTest(){
+        long adminId = 1L;
         CreateCouponPolicyDto request = new CreateCouponPolicyDto();
         request.setCouponType("NORMAL");
         request.setName("웰컴 쿠폰");
@@ -76,7 +76,7 @@ public class CouponPolicyServiceTest {
 
         CouponPolicyCreator mockCreator = mock(CouponPolicyCreator.class);
         when(couponPolicyCreatorFactory.findCreator(request.getCouponType())).thenReturn(mockCreator);
-        couponPolicyService.createCouponPolicy(request);
+        couponPolicyService.createCouponPolicy(request,adminId);
         verify(couponPolicyCreatorFactory, times(1)).findCreator(request.getCouponType());
         verify(mockCreator, times(1)).createCouponPolicy(request);
 
@@ -209,7 +209,7 @@ public class CouponPolicyServiceTest {
     @DisplayName("활성화된 쿠폰 삭제 시 논리적 삭제로 대체")
     void deleteCouponPolicyTest() {
         long policyId = 1L;
-
+        long adminId = 1L;
         CouponPolicy couponPolicy = new CouponPolicy(
                 1L, "일반 쿠폰", CouponType.CUSTOM, DiscountType.FIXED,
                 3000, 0, 0, 0, LocalDate.of(2025, 7, 1), LocalDate.of(2025, 7, 31),
@@ -217,7 +217,7 @@ public class CouponPolicyServiceTest {
 
         when(couponPolicyRepository.findById(policyId)).thenReturn(Optional.of(couponPolicy));
 
-        couponPolicyService.deleteCouponPolicyById(policyId);
+        couponPolicyService.deleteCouponPolicyById(policyId,adminId);
 
         verify(couponPolicyRepository, times(1)).save(couponPolicy);
 
@@ -255,7 +255,7 @@ public class CouponPolicyServiceTest {
 
         List<Long> resultPolicyIds = result.stream()
                 .map(IssuableCouponPolicyDto::getCouponPolicyId)
-                .collect(Collectors.toList());
+                .toList();
         assertThat(resultPolicyIds).containsExactlyInAnyOrder(1L, 2L);
 
         verify(policyTargetBookRepository, times(1)).findByBookId(bookId);

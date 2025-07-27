@@ -1,7 +1,7 @@
 package shop.wannab.couponservice.coupon.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -127,9 +127,16 @@ class CouponServiceTest {
     void issueWelcomeCoupon_Ignored_PolicyNotFound() {
         Long userId = 1L;
         when(couponPolicyRepository.findByCouponTypeAndPolicyStatus(CouponType.WELCOME, PolicyStatus.ACTIVE))
-            .thenReturn(Optional.empty());
+                .thenReturn(Optional.empty());
 
-        assertDoesNotThrow(() -> couponService.issueWelcomeCouponForNewUser(userId));
+        CouponException exception = assertThrows(CouponException.class, () ->
+                couponService.issueWelcomeCouponForNewUser(userId)
+        );
+
+        assertEquals(CouponErrorCode.WELCOME_COUPON_POLICY_NOT_FOUND, exception.getErrorCode());
+        assertEquals("활성화된 웰컴 쿠폰 정책이 존재하지 않습니다.", exception.getMessage());
+
+        verify(couponRepository, never()).existsByUserIdAndCouponPolicy(anyLong(), any(CouponPolicy.class));
         verify(couponRepository, never()).save(any(Coupon.class));
     }
 
@@ -193,12 +200,20 @@ class CouponServiceTest {
     @Test
     @DisplayName("생일 쿠폰 발급 무시 - 정책이 없는 경우")
     void issueBirthdayCoupon_Ignored_PolicyNotFound() {
-        int month = 7;
-        when(couponPolicyRepository.findByCouponTypeAndPolicyStatus(CouponType.BIRTHDAY, PolicyStatus.ACTIVE))
-            .thenReturn(Optional.empty());
+        int currentMonth = 7; // 예시로 7월
 
-        assertDoesNotThrow(() -> couponService.issueBirthdayCoupon(month));
+        when(couponPolicyRepository.findByCouponTypeAndPolicyStatus(CouponType.BIRTHDAY, PolicyStatus.ACTIVE))
+                .thenReturn(Optional.empty());
+
+        CouponException exception = assertThrows(CouponException.class, () ->
+                couponService.issueBirthdayCoupon(currentMonth)
+        );
+
+        assertEquals(CouponErrorCode.BIRTHDAY_COUPON_POLICY_NOT_FOUND, exception.getErrorCode());
+        assertEquals("활성화된 생일 쿠폰 정책이 존재하지 않습니다.", exception.getMessage());
+
         verify(userServiceClient, never()).getBirthdayUserIds(anyInt());
+        verify(couponRepository, never()).existsByUserIdAndCouponPolicy(anyLong(), any(CouponPolicy.class));
         verify(couponRepository, never()).save(any(Coupon.class));
     }
 

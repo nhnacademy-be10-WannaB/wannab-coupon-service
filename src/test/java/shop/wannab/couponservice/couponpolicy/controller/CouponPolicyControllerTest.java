@@ -45,7 +45,7 @@ import shop.wannab.couponservice.couponpolicy.service.CouponPolicyService;
 @DisplayName("CouponPolicy Controller 단위 테스트")
 @WebMvcTest(CouponPolicyController.class)
 @ExtendWith({RestDocumentationExtension.class, SpringExtension.class})
-public class CouponPolicyControllerTest {
+class CouponPolicyControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -72,6 +72,7 @@ public class CouponPolicyControllerTest {
     @Test
     @DisplayName("쿠폰 정책 생성 API - 성공")
     void createCouponPolicy_Success() throws Exception {
+        Long adminId = 100L;
         CreateCouponPolicyDto requestDto = new CreateCouponPolicyDto();
         requestDto.setName("유효한 쿠폰 정책");
         requestDto.setCouponType("NORMAL");
@@ -79,9 +80,9 @@ public class CouponPolicyControllerTest {
         requestDto.setDiscountValue(1000);
         requestDto.setStartDate(LocalDate.now());
         requestDto.setEndDate(LocalDate.now().plusDays(30));
-        doNothing().when(couponPolicyService).createCouponPolicy(any(CreateCouponPolicyDto.class));
+        doNothing().when(couponPolicyService).createCouponPolicy(any(CreateCouponPolicyDto.class),anyLong());
 
-        mockMvc.perform(post("/api/admin/coupon_policies")
+        mockMvc.perform(post("/api/admin/coupon_policies").header("X-USER-ID", adminId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(requestDto)))
             .andExpect(status().isOk())
@@ -103,7 +104,7 @@ public class CouponPolicyControllerTest {
                 )
             ));
 
-        verify(couponPolicyService).createCouponPolicy(any(CreateCouponPolicyDto.class));
+        verify(couponPolicyService).createCouponPolicy(any(CreateCouponPolicyDto.class),anyLong());
     }
 
     @Test
@@ -128,9 +129,12 @@ public class CouponPolicyControllerTest {
     @DisplayName("쿠폰 정책 삭제 API - 성공")
     void deleteCouponPolicy_Success() throws Exception {
         Long policyId = 1L;
-        doNothing().when(couponPolicyService).deleteCouponPolicyById(anyLong());
+        Long adminId = 100L; // 테스트용 adminId 값
 
-        mockMvc.perform(delete("/api/admin/coupon_policies/{policyId}", policyId))
+        doNothing().when(couponPolicyService).deleteCouponPolicyById(anyLong(),anyLong());
+
+        mockMvc.perform(delete("/api/admin/coupon_policies/{policyId}", policyId)
+                        .header("X-USER-ID", adminId))
             .andExpect(status().isOk())
             .andDo(document("coupon-policy/delete-coupon-policy",
                 pathParameters(
@@ -138,6 +142,6 @@ public class CouponPolicyControllerTest {
                 )
             ));
 
-        verify(couponPolicyService).deleteCouponPolicyById(policyId);
+        verify(couponPolicyService).deleteCouponPolicyById(policyId,adminId);
     }
 }

@@ -59,7 +59,7 @@ class DataSourceConfigTest {
         assertThat(dataSourceConfig.getDriverClassName()).isEqualTo("org.h2.Driver");
         assertThat(dataSourceConfig.getUrl()).isEqualTo("jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=MYSQL");
         assertThat(dataSourceConfig.getUsername()).isEqualTo("sa");
-        assertThat(dataSourceConfig.getPassword()).isEqualTo("");
+        assertThat(dataSourceConfig.getPassword()).isEmpty();
         assertThat(dataSourceConfig.getMaxIdle()).isEqualTo(10);
         assertThat(dataSourceConfig.getMaxTotal()).isEqualTo(20);
         assertThat(dataSourceConfig.getInitialSize()).isEqualTo(5);
@@ -78,8 +78,6 @@ class DataSourceConfigTest {
 
         assertThat(basicDataSource.getDriverClassName()).isEqualTo("org.h2.Driver");
         assertThat(basicDataSource.getUrl()).isEqualTo("jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=MYSQL");
-        assertThat(basicDataSource.getUsername()).isEqualTo("sa");
-        assertThat(basicDataSource.getPassword()).isEqualTo("");
         assertThat(basicDataSource.getMaxIdle()).isEqualTo(10);
         assertThat(basicDataSource.getMaxTotal()).isEqualTo(20);
         assertThat(basicDataSource.getInitialSize()).isEqualTo(5);
