@@ -1,20 +1,30 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<configuration> <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
     <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
 
+    <property name="LOG_PATH" value="/app/logs"/>
     <property name="APP_NAME" value="coupon-service"/>
-
-    <property name="DEPLOY_LOG_PATH" value="/app/logs"/>
-
-    <property name="LOCAL_LOG_PATH" value="/Users/chosun-nhn35/Documents/wannab-coupon-service/logs"/>
+    <property name="VERSION" value="${spring.profiles.active:-unknown}"/>
 
     <appender name="ROLLING_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${LOCAL_LOG_PATH}/${APP_NAME}.log</file>
-        <encoder>
-            <pattern>${FILE_LOG_PATTERN}</pattern>
+        <file>${LOG_PATH}/${APP_NAME}.log</file>
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <timestamp/>
+                <logLevel/>
+                <threadName/>
+                <loggerName/>
+                <pattern>
+                    <pattern>
+                        {"message":"%msg"}
+                    </pattern>
+                </pattern>
+                <mdc/>
+                <stackTrace/>
+            </providers>
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${LOCAL_LOG_PATH}/${APP_NAME}-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <fileNamePattern>${LOG_PATH}/${APP_NAME}-%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>7</maxHistory>
         </rollingPolicy>
     </appender>
@@ -25,16 +35,11 @@
         </root>
     </springProfile>
 
-    <springProfile name="dev,local">
-        <root level="INFO">
-            <appender-ref ref="ROLLING_FILE"/> <appender-ref ref="CONSOLE"/>
-        </root>
+    <springProfile name="!v1">
+        <springProfile name="!v2">
+            <root level="INFO">
+                <appender-ref ref="CONSOLE"/>
+            </root>
+        </springProfile>
     </springProfile>
-
-    <springProfile name="!v1,!v2,!dev,!local">
-        <root level="INFO">
-            <appender-ref ref="CONSOLE"/>
-        </root>
-    </springProfile>
-
 </configuration>
