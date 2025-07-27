@@ -12,7 +12,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import shop.wannab.couponservice.couponpolicy.exception.CouponPolicyException;
 
-public class CouponPolicyCreatorFactoryTest {
+class CouponPolicyCreatorFactoryTest {
 
     private CouponPolicyCreatorFactory factory;
     private CouponPolicyCreator normalCreator;
